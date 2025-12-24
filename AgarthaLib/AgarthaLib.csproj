@@ -8,7 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Update="*/*.meta" Visible="false" />
+    <None Update="*/*.meta" Visible="false" />
+	<None Remove="*.meta" />
   </ItemGroup>
 
   <ItemGroup>
