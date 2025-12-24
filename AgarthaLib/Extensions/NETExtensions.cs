@@ -1,7 +1,7 @@
-﻿using Agartha.Data;
+﻿using AgarthaLib.Data;
 using System;
 
-namespace Agartha.Extensions
+namespace AgarthaLib.Extensions
 {
     public static class NETExtensions
     {

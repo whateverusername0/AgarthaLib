@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Agartha.MonoBehavior
+namespace AgarthaLib.MonoBehavior
 {
     public class TimedDespawn : MonoBehaviour
     {

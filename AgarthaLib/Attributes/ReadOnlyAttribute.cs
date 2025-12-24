@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Agartha.Attributes
+namespace AgarthaLib.Attributes
 {
     public class ReadOnlyAttribute : PropertyAttribute {}
 

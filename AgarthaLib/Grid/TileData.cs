@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-namespace Agartha.Grid
+namespace AgarthaLib.Grid
 {
     [Serializable] public class TileData
     {

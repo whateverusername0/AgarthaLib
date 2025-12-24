@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Agartha.Grid
+namespace AgarthaLib.Grid
 {
 
     public class Pathfinding2D : MonoBehaviour

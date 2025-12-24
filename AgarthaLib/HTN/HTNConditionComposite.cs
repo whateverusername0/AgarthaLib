@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Agartha.HTN
+namespace AgarthaLib.HTN
 {
     public class HTNConditionComposite : HTNCondition
     {

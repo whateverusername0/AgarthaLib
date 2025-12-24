@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 
-namespace Agartha.UI
+namespace AgarthaLib.UI
 {
     public class UITextMirror : MonoBehaviour
     {

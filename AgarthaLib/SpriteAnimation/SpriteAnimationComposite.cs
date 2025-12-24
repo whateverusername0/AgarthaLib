@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Agartha.SpriteAnimation
+namespace AgarthaLib.SpriteAnimation
 {
     /// <summary>
     ///     Third base class. Unwraps into a list of sprite animations.

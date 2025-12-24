@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Agartha.MonoBehavior
+namespace AgarthaLib.MonoBehavior
 {
     // oh yeah?
     public class DoNotDestroyOnLoad : MonoBehaviour

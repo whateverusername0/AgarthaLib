@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 
-namespace Agartha.MonoBehavior
+namespace AgarthaLib.MonoBehavior
 {
     public class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
     {

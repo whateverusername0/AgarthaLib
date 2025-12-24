@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-namespace Agartha.Grid
+namespace AgarthaLib.Grid
 {
     public class TilemapData : MonoBehaviour
     {

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Agartha.HTN
+namespace AgarthaLib.HTN
 {
     public abstract class HTNCondition : MonoBehaviour
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Agartha.MonoBehavior
+namespace AgarthaLib.MonoBehavior
 {
     public class ObjectParticleSystem2D : MonoBehaviour
     {

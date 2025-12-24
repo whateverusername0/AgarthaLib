@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace Agartha.EventSystem
+namespace AgarthaLib.EventSystem
 {
     /// <summary>
     ///     A generic event that can be cancelled.

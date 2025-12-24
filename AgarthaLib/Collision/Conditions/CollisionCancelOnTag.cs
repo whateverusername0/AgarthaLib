@@ -1,9 +1,9 @@
-﻿using Agartha.EventSystem;
+﻿using AgarthaLib.EventSystem;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Agartha.Collision.Conditions
+namespace AgarthaLib.Collision.Conditions
 {
     public class CollisionCancelOnTag : MonoBehaviour
     {

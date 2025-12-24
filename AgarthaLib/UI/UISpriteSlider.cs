@@ -1,8 +1,8 @@
-using Agartha.Data;
-using Agartha.Extensions;
+using AgarthaLib.Data;
+using AgarthaLib.Extensions;
 using UnityEngine;
 
-namespace Agartha.UI
+namespace AgarthaLib.UI
 {
     public class UISpriteSlider : MonoBehaviour
     {

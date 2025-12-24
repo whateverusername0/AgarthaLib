@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Agartha.SpriteAnimation.SpriteAnimator
+namespace AgarthaLib.SpriteAnimation.SpriteAnimator
 {
     [Serializable] public enum FrameCycleScale
     {

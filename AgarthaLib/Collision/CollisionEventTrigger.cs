@@ -1,7 +1,7 @@
-﻿using Agartha.EventSystem;
+﻿using AgarthaLib.EventSystem;
 using UnityEngine;
 
-namespace Agartha.Collision
+namespace AgarthaLib.Collision
 {
     public class CollisionEventTrigger : MonoBehaviour
     {

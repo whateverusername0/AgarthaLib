@@ -1,8 +1,8 @@
-﻿using Agartha.MonoBehavior;
+﻿using AgarthaLib.MonoBehavior;
 using TMPro;
 using UnityEngine;
 
-namespace Agartha.UI
+namespace AgarthaLib.UI
 {
     public class UIPercentageDisplay : MonoBehaviour
     {

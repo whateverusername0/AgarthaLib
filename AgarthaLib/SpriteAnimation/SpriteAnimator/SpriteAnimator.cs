@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Agartha.SpriteAnimation.SpriteAnimator
+namespace AgarthaLib.SpriteAnimation.SpriteAnimator
 {
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class SpriteAnimator : SpriteAnimatorBase

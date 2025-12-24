@@ -1,8 +1,8 @@
-﻿using Agartha.Extensions;
+﻿using AgarthaLib.Extensions;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Agartha.Audio
+namespace AgarthaLib.Audio
 {
     [CreateAssetMenu(menuName = "Agartha / Audio / Audio clip pool")]
     public class AudioClipPool : ScriptableObject

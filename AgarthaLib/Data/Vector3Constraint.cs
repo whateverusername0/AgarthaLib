@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Agartha.Data
+namespace AgarthaLib.Data
 {
     [Serializable]
     public struct Vector3Constraint

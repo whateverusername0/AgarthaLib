@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Agartha.SpriteAnimation.SpriteAnimator
+namespace AgarthaLib.SpriteAnimation.SpriteAnimator
 {
     // copies sprite value to the image.
     // generally not recommended if you have a lot of these.

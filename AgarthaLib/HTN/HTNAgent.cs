@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Agartha.HTN
+namespace AgarthaLib.HTN
 {
     public class HTNAgent : MonoBehaviour
     {

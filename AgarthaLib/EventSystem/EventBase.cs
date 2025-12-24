@@ -1,4 +1,4 @@
-﻿namespace Agartha.EventSystem
+﻿namespace AgarthaLib.EventSystem
 {
     /// <summary>
     ///     A generic class for an Event.
