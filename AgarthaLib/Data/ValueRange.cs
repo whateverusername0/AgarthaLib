@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AgarthaLib.MonoBehavior
+namespace AgarthaLib.Data
 {
     public class ValueRange : MonoBehaviour
     {

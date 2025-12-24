@@ -1,17 +1,36 @@
 ﻿using AgarthaLib.EventSystem;
+using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
 namespace AgarthaLib.Collision
 {
-    public class CollisionEventTrigger : MonoBehaviour
+    public class BeforeCollisionEnterEvent : TargetedCancellableEvent
     {
-        public CancellableEventDelegate<CollisionEventTrigger, GameObject> BeforeCollisionEnterEvent;
-        public EventDelegate<CollisionEventTrigger, GameObject> CollisionEnterEvent;
-        public EventDelegate<CollisionEventTrigger, GameObject> AfterCollisionEnterEvent;
+        public BeforeCollisionEnterEvent(GameObject target) : base(target) {  }
+    }
 
-        public EventDelegate<CollisionEventTrigger, GameObject> CollisionStayEvent;
-        public EventDelegate<CollisionEventTrigger, GameObject> CollisionExitEvent;
+    public class CollisionEnterEvent : TargetedEventBase
+    {
+        public CollisionEnterEvent(GameObject target) : base(target) {  }
+    }
 
+    public class AfterCollisionEnterEvent : TargetedEventBase
+    {
+        public AfterCollisionEnterEvent(GameObject target) : base(target) {  }
+    }
+
+    public class CollisionStayEvent : TargetedEventBase
+    {
+        public CollisionStayEvent(GameObject target) : base(target) {  }
+    }
+
+    public class CollisionExitEvent : TargetedEventBase
+    {
+        public CollisionExitEvent(GameObject target) : base(target) { }
+    }
+
+    public class CollisionEventTrigger : AgarthanBehaviour
+    {
         private void OnCollisionEnter(UnityEngine.Collision collision)
             => BeginCollide(collision.gameObject);
 
@@ -51,17 +70,19 @@ namespace AgarthaLib.Collision
 
         protected virtual void BeginCollide(GameObject other)
         {
-            if (BeforeCollisionEnterEvent != null && (bool)BeforeCollisionEnterEvent?.IsCancelled(this, other))
+            var before = new BeforeCollisionEnterEvent(other);
+            RaiseEvent(other, ref before);
+            if (before.Cancelled)
                 return;
 
-            CollisionEnterEvent?.Invoke(this, other);
-            AfterCollisionEnterEvent?.Invoke(this, other);
+            RaiseEvent(other, new CollisionEnterEvent(other));
+            RaiseEvent(other, new AfterCollisionEnterEvent(other));
         }
 
         protected virtual void CollisionStay(GameObject other)
-            => CollisionStayEvent?.Invoke(this, other);
+            => RaiseEvent(other, new CollisionStayEvent(other));
 
         protected virtual void CollisionExit(GameObject other)
-            => CollisionExitEvent?.Invoke(this, other);
+            => RaiseEvent(other, new CollisionExitEvent(other));
     }
 }

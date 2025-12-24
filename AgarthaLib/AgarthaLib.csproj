@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Update="*/*.meta" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Unity.Cecil">
       <HintPath>.ref\Unity.Cecil.dll</HintPath>
     </Reference>

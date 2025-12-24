@@ -1,4 +1,4 @@
-﻿using AgarthaLib.MonoBehavior;
+﻿using AgarthaLib.Data;
 using TMPro;
 using UnityEngine;
 

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace AgarthaLib.MonoBehavior
 {
-    public class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
+    public class MonoSingleton<T> : AgarthanBehaviour where T : MonoSingleton<T>
     {
         private static T _instance;
         public static T Instance

@@ -1,11 +1,25 @@
-﻿namespace AgarthaLib.EventSystem
+﻿using UnityEngine;
+
+namespace AgarthaLib.EventSystem
 {
-    /// <summary>
-    ///     A generic class for an Event.
-    /// </summary>
-    public abstract class EventBase { }
+    public class EventBase { }
 
-    public delegate void EventDelegate();
+    public class TargetedEventBase
+    {
+        public GameObject Target;
 
-    public delegate void EventDelegate<A, B>(A invoker, B target);
+        public TargetedEventBase(GameObject target) { Target = target; }
+    }
+
+    public class CancellableEventBase : EventBase
+    {
+        public bool Cancelled { get; set; }
+    }
+
+    public class TargetedCancellableEvent : TargetedEventBase
+    {
+        public bool Cancelled { get; set; }
+
+        public TargetedCancellableEvent(GameObject target) : base(target) { }
+    }
 }

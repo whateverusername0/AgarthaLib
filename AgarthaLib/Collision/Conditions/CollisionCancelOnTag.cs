@@ -1,11 +1,10 @@
-﻿using AgarthaLib.EventSystem;
+﻿using AgarthaLib.MonoBehavior;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace AgarthaLib.Collision.Conditions
 {
-    public class CollisionCancelOnTag : MonoBehaviour
+    public class CollisionCancelOnTag : AgarthanBehaviour
     {
         public CollisionEventTrigger Collider;
         public List<string> Whitelist;
@@ -13,14 +12,15 @@ namespace AgarthaLib.Collision.Conditions
 
         private void Start()
         {
-            Collider.BeforeCollisionEnterEvent += OnBeforeCollision;
+            SubscribeEvent<BeforeCollisionEnterEvent>(OnBeforeCollisionEnter);
         }
 
-        private CancellableEvent OnBeforeCollision(CollisionEventTrigger invoker, GameObject target)
+        private void OnBeforeCollisionEnter(object invoker, ref BeforeCollisionEnterEvent args)
         {
+            var target = args.Target;
             var allowed = !Whitelist.Any(q => target.CompareTag(q));
             var disallowed = Blacklist.Any(q => target.CompareTag(q));
-            return allowed || disallowed;
+            args.Cancelled = allowed || disallowed;
         }
     }
 }
