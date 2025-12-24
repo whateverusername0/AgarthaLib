@@ -1,4 +1,6 @@
 ﻿using AgarthaLib.EventSystem;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AgarthaLib.MonoBehavior
@@ -7,17 +9,19 @@ namespace AgarthaLib.MonoBehavior
     {
         private readonly LocalEventBus _bus = new();
 
-        public void RaiseEvent(GameObject @object, object args)
-            => _bus.RaiseEvent(@object, args);
+        public Dictionary<Type, EventHandlerDelegate<object, object>> GetSubscriptions() => _bus.GetSubscriptions();
 
-        public void RaiseEvent<TEvent>(GameObject @object, TEvent args)
-            => _bus.RaiseEvent(@object, args);
+        public void RaiseEvent(GameObject target, object args)
+            => _bus.RaiseEvent(target, args);
 
-        public void RaiseEvent(GameObject @object, ref object args)
-            => _bus.RaiseEvent(@object, ref args);
+        public void RaiseEvent(GameObject target, ref object args)
+            => _bus.RaiseEvent(target, ref args);
 
-        public void RaiseEvent<TEvent>(GameObject @object, ref TEvent args)
-            => _bus.RaiseEvent(@object, ref args);
+        public void RaiseEvent<TEvent>(GameObject target, TEvent args)
+            => _bus.RaiseEvent(target, args);
+
+        public void RaiseEvent<TEvent>(GameObject target, ref TEvent args)
+            => _bus.RaiseEvent(target, ref args);
 
         public void SubscribeEvent<TArgs>(EventHandlerDelegate<object, TArgs> handler)
             => _bus.SubscribeEvent(handler);

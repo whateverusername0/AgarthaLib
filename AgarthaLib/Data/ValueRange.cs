@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace AgarthaLib.Data
 {
-    public class ValueRange : MonoBehaviour
+    [Serializable] public class ValueRange
     {
         [SerializeField] protected float _value = 0f;
         public float Value

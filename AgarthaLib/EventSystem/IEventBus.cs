@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace AgarthaLib.EventSystem
 {
@@ -8,12 +10,14 @@ namespace AgarthaLib.EventSystem
 
     public interface IEventBus
     {
-        public void RaiseEvent(GameObject @object, object args);
-        public void RaiseEvent<TEvent>(GameObject @object, TEvent args);
+        public Dictionary<Type, EventHandlerDelegate<object, object>> GetSubscriptions();
 
-        public void RaiseEvent(GameObject @object, ref object args);
-        public void RaiseEvent<TEvent>(GameObject @object, ref TEvent args);
-        
+        public void RaiseEvent(GameObject target, object args);
+        public void RaiseEvent(GameObject target, ref object args);
+
+        public void RaiseEvent<TEvent>(GameObject target, TEvent args);
+        public void RaiseEvent<TEvent>(GameObject target, ref TEvent args);
+
         public void SubscribeEvent<TArgs>(EventHandlerDelegate<object, TArgs> handler);
         public void UnsubscribeEvent<TArgs>(EventHandlerDelegate<object, TArgs> handler);
     }
