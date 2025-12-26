@@ -17,7 +17,7 @@ namespace AgarthaLib.Collision.Conditions
 
         private void OnBeforeCollisionEnter(object invoker, ref BeforeCollisionEnterEvent args)
         {
-            var target = args.Target;
+            var target = args.GameObject;
             var allowed = !Whitelist.Any(q => target.CompareTag(q));
             var disallowed = Blacklist.Any(q => target.CompareTag(q));
             args.Cancelled = allowed || disallowed;

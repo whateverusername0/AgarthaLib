@@ -1,32 +1,41 @@
 ﻿using AgarthaLib.EventSystem;
+using AgarthaLib.EventSystem.EventBus;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace AgarthaLib.MonoBehavior
 {
-    public class AgarthanBehaviour : MonoBehaviour, IEventBus
+    /// <summary>
+    ///     Base class for all <see cref="MonoBehaviour"/> objects that want to use AgarthaLib's functionality.
+    ///     Sure you can manually implement everything, but you'd be better off inheriting this bad boy.
+    /// </summary>
+    public class AgarthanBehaviour : MonoBehaviour, ILocalEventBus
     {
+        #region Events
+
         private readonly LocalEventBus _bus = new();
 
-        public Dictionary<Type, EventHandlerDelegate<object, object>> GetSubscriptions() => _bus.GetSubscriptions();
+        /// <inheritdoc cref="LocalEventBus.GetSubscriptions"/>
+        public Dictionary<Type, Delegate> GetSubscriptions()
+            => _bus.GetSubscriptions();
 
-        public void RaiseEvent(GameObject target, object args)
+        /// <inheritdoc/>
+        public void RaiseEvent<TArgs>(GameObject target, TArgs args) where TArgs : class
             => _bus.RaiseEvent(target, args);
 
-        public void RaiseEvent(GameObject target, ref object args)
+        /// <inheritdoc/>
+        public void RaiseEvent<TArgs>(GameObject target, ref TArgs args) where TArgs : class
             => _bus.RaiseEvent(target, ref args);
 
-        public void RaiseEvent<TEvent>(GameObject target, TEvent args)
-            => _bus.RaiseEvent(target, args);
-
-        public void RaiseEvent<TEvent>(GameObject target, ref TEvent args)
-            => _bus.RaiseEvent(target, ref args);
-
-        public void SubscribeEvent<TArgs>(EventHandlerDelegate<object, TArgs> handler)
+        /// <inheritdoc/>
+        public void SubscribeEvent<TArgs>(EventHandlerDelegate<TArgs> handler)
             => _bus.SubscribeEvent(handler);
 
-        public void UnsubscribeEvent<TArgs>(EventHandlerDelegate<object, TArgs> handler)
+        /// <inheritdoc/>
+        public void UnsubscribeEvent<TArgs>(EventHandlerDelegate<TArgs> handler)
             => _bus.UnsubscribeEvent(handler);
+
+        #endregion
     }
 }
