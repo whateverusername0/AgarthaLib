@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace AgarthaLib.EventSystem
 {
-    public delegate void EventHandlerDelegate<TArgs>(object invoker, ref TArgs args);
+    public delegate void LocalEventHandlerDelegate<TArgs>(GameObject invoker, ref TArgs args)
+        where TArgs : class;
 
     public interface ILocalEventBus
     {
@@ -16,21 +17,21 @@ namespace AgarthaLib.EventSystem
         ///     will receive the event if they have a subscription for the event type.
         /// </summary>
         /// <param name="target">Target <see cref="GameObject"/></param>
-        public void RaiseEvent<TArgs>(GameObject target, TArgs args) where TArgs : class;
+        public void RaiseEvent<TArgs>(GameObject invoker, GameObject target, TArgs args) where TArgs : class;
 
         /// <inheritdoc cref="RaiseEvent{TArgs}(GameObject, TArgs)"/>
-        public void RaiseEvent<TArgs>(GameObject target, ref TArgs args) where TArgs : class;
+        public void RaiseEvent<TArgs>(GameObject invoker, GameObject target, ref TArgs args) where TArgs : class;
 
         /// <summary>
         ///     Subscribes to an event.
         ///     Once raised, the handler will be invoked.
         /// </summary>
-        public void SubscribeEvent<TArgs>(EventHandlerDelegate<TArgs> handler);
+        public void SubscribeEvent<TArgs>(LocalEventHandlerDelegate<TArgs> handler) where TArgs : class;
 
         /// <summary>
         ///    Unsubscribes from an event.
         ///    It will no longer be invoked.
         /// </summary>
-        public void UnsubscribeEvent<TArgs>(EventHandlerDelegate<TArgs> handler);
+        public void UnsubscribeEvent<TArgs>(LocalEventHandlerDelegate<TArgs> handler) where TArgs : class;
     }
 }

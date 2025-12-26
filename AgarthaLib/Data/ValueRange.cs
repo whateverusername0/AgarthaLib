@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace AgarthaLib.Data
 {
-    [Serializable] public class ValueRange
+    [Serializable] public class ValueRange : MonoBehaviour
     {
         [SerializeField] protected float _value = 0f;
         public float Value

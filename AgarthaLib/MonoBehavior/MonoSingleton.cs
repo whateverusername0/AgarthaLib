@@ -7,7 +7,7 @@ namespace AgarthaLib.MonoBehavior
     ///     Base class for everything you want to have a single examplar and direct access of.
     ///     Implements <see cref="MonoBehaviour"/>.
     /// </summary>
-    public class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
+    public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
     {
         private static T _instance;
         public static T Instance

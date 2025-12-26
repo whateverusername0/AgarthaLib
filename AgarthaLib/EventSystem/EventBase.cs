@@ -4,22 +4,20 @@ namespace AgarthaLib.EventSystem
 {
     public class EventBase { }
 
-    public class TargetedEventBase
-    {
-        public GameObject Target;
-
-        public TargetedEventBase(GameObject target) { Target = target; }
-    }
-
     public class CancellableEventBase : EventBase
     {
         public bool Cancelled { get; set; }
     }
 
-    public class TargetedCancellableEvent : TargetedEventBase
+    public class RelayedEvent<T> where T : class
     {
-        public bool Cancelled { get; set; }
+        public GameObject Source;
+        public T Args { get; set; }
 
-        public TargetedCancellableEvent(GameObject target) : base(target) { }
+        public RelayedEvent(GameObject invoker, T args)
+        {
+            Source = invoker;
+            Args = args;
+        }
     }
 }
