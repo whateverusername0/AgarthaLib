@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace AgarthaLib.SpriteAnimation
+namespace AgarthaLib.Sprites.Animation
 {
     /// <summary>
     ///     Second base class. Is used as a data structure in child classes.

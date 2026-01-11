@@ -1,29 +1,12 @@
-﻿using System;
+﻿using AgarthaLib.MonoBehavior;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace AgarthaLib.SpriteAnimation.SpriteAnimator
+namespace AgarthaLib.Sprites.Animation.SpriteAnimator
 {
-    [Serializable] public enum FrameCycleScale
-    {
-        Normal = 0,
-        Unscaled = 1,
-        Fixed = 2,
-    }
-
-    [Serializable] public class SpriteAnimatorQueueItem
-    {
-        public SpriteAnimation Animation;
-        public Action EndAction;
-
-        public SpriteAnimatorQueueItem(SpriteAnimation anim)
-        {
-            Animation = anim;
-        }
-    }
-
-    public abstract class SpriteAnimatorBase : MonoBehaviour
+    public abstract class SpriteAnimatorBase : AgarthanBehaviour
     {
         public List<SpriteAnimatorQueueItem> Queue;
         public SpriteAnimatorQueueItem CurrentAnimation;
@@ -163,6 +146,24 @@ namespace AgarthaLib.SpriteAnimation.SpriteAnimator
         public void SetLastFrameAction(Action @void)
         {
             Queue.Last().EndAction = @void;
+        }
+    }
+
+    [Serializable] public enum FrameCycleScale
+    {
+        Normal = 0,
+        Unscaled = 1,
+        Fixed = 2,
+    }
+
+    [Serializable] public class SpriteAnimatorQueueItem
+    {
+        public SpriteAnimation Animation;
+        public Action EndAction;
+
+        public SpriteAnimatorQueueItem(SpriteAnimation anim)
+        {
+            Animation = anim;
         }
     }
 }

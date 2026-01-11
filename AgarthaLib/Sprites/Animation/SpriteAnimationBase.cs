@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AgarthaLib.SpriteAnimation
+namespace AgarthaLib.Sprites.Animation
 {
     /// <summary>
     ///     A base class defining a sprite animation.
