@@ -41,6 +41,9 @@ namespace AgarthaLib.EventSystem.EventBus
             if (_subscriptions.ContainsKey(key) && _subscriptions[key].Contains(handler))
                 throw new Exception($"EventBus already has a handler of {handler.GetType()} for event {typeof(TArgs)}");
 
+            if (!_subscriptions.ContainsKey(key) || _subscriptions[key] == null)
+                _subscriptions[key] = new List<Delegate>();
+
             _subscriptions[key].Add(handler);
         }
 
