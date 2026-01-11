@@ -4,9 +4,8 @@ using System.Linq;
 
 namespace AgarthaLib.Collision.Conditions
 {
-    public class CollisionCancelOnTag : AgarthanBehaviour
+    public class CollisionTagCondition : AgarthanBehaviour
     {
-        public CollisionEventTrigger Collider;
         public List<string> Whitelist;
         public List<string> Blacklist;
 
@@ -17,6 +16,8 @@ namespace AgarthaLib.Collision.Conditions
 
         private void OnBeforeCollisionEnter(object invoker, ref BeforeCollisionEnterEvent args)
         {
+            if (args.Cancelled) return;
+
             var target = args.GameObject;
             var allowed = !Whitelist.Any(q => target.CompareTag(q));
             var disallowed = Blacklist.Any(q => target.CompareTag(q));
