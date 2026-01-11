@@ -52,6 +52,9 @@ namespace AgarthaLib.Extensions
             return l;
         }
 
+        public static Transform GetChildByName(this Transform t, string name)
+            => t.Find(name);
+
         public static bool IsInLayerMask(this GameObject @object, LayerMask lm)
             => lm == (lm | (1 << @object.layer));
     }
