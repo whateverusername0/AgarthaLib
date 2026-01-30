@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace AgarthaLib.Extensions
@@ -51,6 +52,9 @@ namespace AgarthaLib.Extensions
                 l.Add(t.GetChild(i));
             return l;
         }
+
+        public static List<T> GetChildren<T>(this Transform t) where T : Component
+            => t.GetChildren().ConvertAll(q => q.GetComponent<T>()).Where(q => q != null).ToList();
 
         public static Transform GetChildByName(this Transform t, string name)
             => t.Find(name);
