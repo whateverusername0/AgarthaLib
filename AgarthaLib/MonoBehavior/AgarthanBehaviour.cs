@@ -1,4 +1,5 @@
-﻿using AgarthaLib.EventSystem;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.EventSystem;
 using AgarthaLib.EventSystem.EventBus;
 using AgarthaLib.Extensions;
 using System;
@@ -92,5 +93,23 @@ namespace AgarthaLib.MonoBehavior
         }
 
         #endregion
+
+        protected virtual void Start()
+        {
+            ValidateNull();
+        }
+
+        private void ValidateNull()
+        {
+            var fields = GetType().GetFields();
+            foreach (var item in fields.Where(q => Attribute.IsDefined(q, typeof(ValidateNullAttribute))))
+            {
+                if (item.FieldType.IsSubclassOf(typeof(Component)))
+                {
+                    var value = item.GetValue(this) as Component;
+                    item.SetValue(this, value == null ? GetComponent(item.FieldType) : value);
+                }
+            }
+        }
     }
 }

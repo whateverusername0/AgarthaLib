@@ -1,16 +1,12 @@
-﻿using UnityEngine;
+﻿using AgarthaLib.Attributes;
+using UnityEngine;
 
 namespace AgarthaLib.Sprites.Animation.SpriteAnimator
 {
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class SpriteAnimator : SpriteAnimatorBase
     {
-        public SpriteRenderer SR;
-
-        private void Start()
-        {
-            SR = SR != null ? SR : GetComponent<SpriteRenderer>();
-        }
+        [ValidateNull] public SpriteRenderer SR;
 
         protected override void SetFrame(Sprite frame)
             => SR.sprite = frame;

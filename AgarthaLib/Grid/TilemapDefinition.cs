@@ -1,4 +1,5 @@
-﻿using AgarthaLib.MonoBehavior;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.MonoBehavior;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,12 +10,13 @@ namespace AgarthaLib.Grid
     public class TilemapDefinition : AgarthanBehaviour
     {
         public MapDefinition MapDefinition;
-        public Tilemap Tilemap;
+        [ValidateNull] public Tilemap Tilemap;
         public List<TileData> Tiles;
         public bool ProvideCollisions = false;
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
             Tiles = GetTiles();
         }
 

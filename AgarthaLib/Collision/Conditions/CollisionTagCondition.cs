@@ -9,8 +9,9 @@ namespace AgarthaLib.Collision.Conditions
         public List<string> Whitelist;
         public List<string> Blacklist;
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
             SubscribeEvent<BeforeCollisionEnterEvent>(OnBeforeCollisionEnter);
         }
 

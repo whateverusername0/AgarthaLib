@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace AgarthaLib.Attributes
 {
-    public class ReadOnlyAttribute : PropertyAttribute {}
+    public class EditorReadOnlyAttribute : PropertyAttribute {}
 
 #if UNITY_EDITOR
-    [CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
+    [CustomPropertyDrawer(typeof(EditorReadOnlyAttribute))]
     public class ReadOnlyDrawer : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
