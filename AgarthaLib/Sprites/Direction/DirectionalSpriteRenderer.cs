@@ -1,4 +1,5 @@
-﻿using AgarthaLib.MonoBehavior;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
 namespace AgarthaLib.Sprites.Direction
@@ -6,14 +7,9 @@ namespace AgarthaLib.Sprites.Direction
     [RequireComponent(typeof(SpriteRenderer))]
     public class DirectionalSpriteRenderer : AgarthanBehaviour
     {
-        private SpriteRenderer _sr;
+        [ValidateNull] private SpriteRenderer SR;
         public DirectionalSprite Sprite;
         public Transform Pivot;
-
-        private void Start()
-        {
-            _sr = GetComponent<SpriteRenderer>();
-        }
 
         private void Update()
         {
@@ -24,10 +20,10 @@ namespace AgarthaLib.Sprites.Direction
             if (Sprite == null) return;
             switch (rot)
             {
-                case 0: default: _sr.sprite = Sprite.Up; break;
-                case 1: _sr.sprite = Sprite.Right; break;
-                case 2: _sr.sprite = Sprite.Down; break;
-                case 3: _sr.sprite = Sprite.Left; break;
+                case 0: default: SR.sprite = Sprite.Up; break;
+                case 1: SR.sprite = Sprite.Right; break;
+                case 2: SR.sprite = Sprite.Down; break;
+                case 3: SR.sprite = Sprite.Left; break;
             }
         }
     }
