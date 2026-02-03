@@ -34,6 +34,7 @@ namespace AgarthaLib.Grid
                     @out.Add(new(this, localPlace, Tilemap.GetTile(localPlace)));
             }
 
+            Tiles = @out;
             return @out;
         }
 

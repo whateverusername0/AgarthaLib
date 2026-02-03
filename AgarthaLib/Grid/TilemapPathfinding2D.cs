@@ -1,52 +1,55 @@
-﻿using AgarthaLib.MonoBehavior;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace AgarthaLib.Grid
 {
-    public class TilemapPathfinding2D : AgarthanBehaviour
+    public class TilemapPathfinding2D
     {
         public int MaxSeeks = 1024;
 
         public List<PathfindingNode> FoundNodes = new();
         public List<PathfindingNode> UnexploredNodes = new();
         public PathfindingNode CurrentNode;
+        public Vector2 Destination;
 
         public MapDefinition Map;
-        public Vector2 Destination;
 
         public bool AllowDiagonalMovement = true;
         public bool AllowCuttingCorners = false;
 
-        /// <summary>
-        ///     Setup the pathfinder for a new seek
-        /// </summary>
-        public void Set(MapDefinition grid, Vector2 destination, Vector2 start)
+        public TilemapPathfinding2D(MapDefinition map, Vector2 start)
         {
-            Map = grid;
-            Destination = destination;
+            Map = map;
             CurrentNode = new (start);
-            FoundNodes.Clear();
-            UnexploredNodes.Clear();
+        }
+
+        public List<Vector2> GetPath(Vector2 destination)
+        {
+            Destination = destination;
+            var path = Seek(destination);
+            if (path == null) return null;
+
+            path = CompressPath(path);
+            return path.ConvertAll(x => x.Position);
         }
 
         /// <summary>
         ///     Seek a path from the start to the destination
         /// </summary>
         /// <returns>Path if possible, otherwise null</returns>
-        public List<PathfindingNode> Seek()
+        public List<PathfindingNode> Seek(Vector2 destination)
         {
             var path = new List<PathfindingNode>();
 
-            if (CurrentNode == null || Map == null || !Map.IsWalkable(Destination))
+            if (CurrentNode == null || Map == null || (destination != Destination && !Map.IsWalkable(destination)))
                 return path;
 
             FoundNodes.Add(CurrentNode);
 
             for (int i = 0; i < MaxSeeks; i++)
             {
-                if (CurrentNode.Position == Destination)
+                if (CurrentNode.Position == destination)
                 {
                     path.Add(CurrentNode);
                     var node = CurrentNode.Parent;
@@ -63,7 +66,7 @@ namespace AgarthaLib.Grid
                     break;
                 }
 
-                SeekNext();
+                SeekNext(destination);
             }
 
             return path;
@@ -72,7 +75,7 @@ namespace AgarthaLib.Grid
         /// <summary>
         ///     Seeks the the next highest priority node
         /// </summary>
-        private void SeekNext()
+        private void SeekNext(Vector2 destination)
         {
             var neighbours = GetNeighbours(CurrentNode);
 
@@ -81,7 +84,7 @@ namespace AgarthaLib.Grid
                 if (!Map.IsWalkable(neighbor.Position))
                     continue;
 
-                var delta = neighbor.Position - Destination;
+                var delta = neighbor.Position - destination;
                 delta = new Vector2(Math.Abs(delta.x), Math.Abs(delta.y));
 
                 if (AllowDiagonalMovement && !AllowCuttingCorners

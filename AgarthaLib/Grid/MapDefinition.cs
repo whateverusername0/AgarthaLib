@@ -9,6 +9,7 @@ namespace AgarthaLib.Grid
 {
     public class MapDefinition : AgarthanBehaviour
     {
+        [Tooltip("Layers are to be enumerated from highest to lowest.")]
         public List<MapLayerDefinition> Layers = new();
 
         public MapLayerDefinition GetLayerInMap(string name)
@@ -70,8 +71,22 @@ namespace AgarthaLib.Grid
             return null;
         }
 
+        public List<TileData> GetAllPossibleTiles()
+        {
+            var list = new List<TileData>();
+            foreach (var layer in Layers)
+                list.AddRange(layer.Tilemap.GetTiles());
+            return list;
+        }
+
         public bool IsWalkable(Vector3 position)
-            => !GetTile(position).Tilemap.ProvideCollisions;
+        {
+            var tile = GetTile(position);
+            return IsWalkable(tile);
+        }
+
+        public bool IsWalkable(TileData tile)
+            => !(tile != null && tile.Tilemap != null && tile.Tilemap.ProvideCollisions);
     }
 
     [Serializable] public class MapLayerDefinition
