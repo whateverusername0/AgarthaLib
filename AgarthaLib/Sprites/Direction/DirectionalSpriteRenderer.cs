@@ -7,17 +7,18 @@ namespace AgarthaLib.Sprites.Direction
     [RequireComponent(typeof(SpriteRenderer))]
     public class DirectionalSpriteRenderer : AgarthanBehaviour
     {
-        [ValidateNull] private SpriteRenderer SR;
+        [SerializeField, ValidateNull] private SpriteRenderer SR;
         public DirectionalSprite Sprite;
         public Transform Pivot;
 
         private void Update()
         {
             if (Pivot == null) return;
-            var rot = Mathf.FloorToInt(Pivot.eulerAngles.z / 90);
+
+            var rot = Mathf.RoundToInt(Pivot.eulerAngles.z / 90);
             this.transform.rotation = Quaternion.identity;
 
-            if (Sprite == null) return;
+            if (SR == null || Sprite == null) return;
             switch (rot)
             {
                 case 0: default: SR.sprite = Sprite.Up; break;

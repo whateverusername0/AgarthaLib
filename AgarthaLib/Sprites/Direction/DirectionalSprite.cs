@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using AgarthaLib.Attributes;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AgarthaLib.Sprites.Direction
@@ -6,7 +7,7 @@ namespace AgarthaLib.Sprites.Direction
     [CreateAssetMenu(menuName = "AgarthaLib / 2D / Directional Sprite")]
     public class DirectionalSprite : ScriptableObject
     {
-        public Sprite Icon;
+        [ScriptableObjectIcon] public Sprite Icon;
 
         [SerializeField] private List<Sprite> _directions;
         public Sprite Up, Down, Left, Right;
