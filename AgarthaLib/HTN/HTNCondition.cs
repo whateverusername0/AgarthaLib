@@ -6,9 +6,9 @@ namespace AgarthaLib.HTN
     {
         public bool ConditionMet = false;
 
-        public void UpdateCondition()
-            => ConditionMet = CheckCondition();
+        public void UpdateCondition(HTNAgent agent)
+            => ConditionMet = CheckCondition(agent);
 
-        protected abstract bool CheckCondition();
+        protected abstract bool CheckCondition(HTNAgent agent);
     }
 }
