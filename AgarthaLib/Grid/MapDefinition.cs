@@ -1,103 +1,143 @@
-﻿using AgarthaLib.Extensions;
+﻿using AgarthaLib.Data;
+using AgarthaLib.Grid.Tiles;
 using AgarthaLib.MonoBehavior;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace AgarthaLib.Grid
 {
     public class MapDefinition : AgarthanBehaviour
     {
-        [Tooltip("Layers are to be enumerated from highest to lowest.")]
-        public List<MapLayerDefinition> Layers = new();
+        public List<Tilemap> Layers;
+        public Tilemap MasterTilemap;
+        public MinMaxInt ZBounds;
 
-        public MapLayerDefinition GetLayerInMap(string name)
-            => Layers.Where(q => q != null && q.Name == name).FirstOrDefault();
-
-        public MapLayerDefinition GetLayer(string name)
+        protected override void Start()
         {
-            var layer = GetLayerInMap(name);
-            if (layer != null) return layer;
+            base.Start();
 
-            var child = transform.GetChildren<TilemapDefinition>().Where(q => q.name == name).FirstOrDefault();
-            if (child != null) return AddLayer(child.name, child);
-
-            return null;
-        }
-
-        public MapLayerDefinition AddLayer(MapLayerDefinition layer)
-        {
-            var existing = GetLayerInMap(name);
-            if (existing != null) return existing;
-
-            Layers.Add(layer);
-            return layer;
-        }
-
-        public MapLayerDefinition AddLayer(string name, TilemapDefinition tilemap)
-            => AddLayer(new MapLayerDefinition(name, tilemap));
-
-        public MapLayerDefinition AddLayer(string name)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(transform, false);
-            var td = go.AddComponent<TilemapDefinition>();
-            td.MapDefinition = this;
-            return AddLayer(name, td);
-        }
-
-        public void DeleteLayer(MapLayerDefinition layer)
-        {
-            Layers.Remove(layer);
-            Destroy(layer.Tilemap.gameObject); // good times!
-        }
-
-        public void DeleteLayer(string name)
-        {
-            var layer = GetLayerInMap(name);
-            if (layer == null) return;
-
-            DeleteLayer(layer);
-        }
-
-        public TileData GetTile(Vector3 position)
-        {
-            foreach (var layer in Layers)
+            if (MasterTilemap == null)
             {
-                var tile = layer.Tilemap.GetTile(position);
-                if (tile != null) return tile;
+                var mt = new GameObject("MasterTilemap");
+                mt.transform.SetParent(this.transform, false);
+                MasterTilemap = mt.AddComponent<Tilemap>();
+                var mtr = mt.AddComponent<TilemapRenderer>();
+                mtr.sortingOrder = -1;
             }
-            return null;
+
+            if (Layers != null && Layers.Count > 0)
+            {
+                var snapshot = new List<Tilemap>(Layers);
+                Layers.Clear();
+
+                for (int i = 0; i < snapshot.Count; i++)
+                {
+                    MergeLayer(snapshot[i], i);
+                    Destroy(snapshot[i].gameObject);
+                }
+            }
         }
+
+        private void MergeLayer(Tilemap layer, int z = 0)
+        {
+            if (MasterTilemap == null)
+                return;
+
+            foreach (var pos in layer.cellBounds.allPositionsWithin)
+            {
+                var tile = layer.GetTile(pos);
+                if (tile != null)
+                {
+                    var newPos = new Vector3Int(pos.x, pos.y, z);
+                    MasterTilemap.SetTile(newPos, tile);
+                }
+            }
+        }
+
+        public TileData GetTile(Vector3Int position)
+        {
+            var tile = MasterTilemap.GetTile(position);
+            if (tile != null) return new TileData(MasterTilemap, position, tile);
+            else return null;
+        }
+
+        public Vector3Int GetCellAt(Vector3 position)
+            => MasterTilemap.WorldToCell(position);
+
+        public List<TileData> GetTiles(Vector2Int position)
+        {
+            var list = new List<TileData>();
+            for (int i = ZBounds.Min; i <= ZBounds.Max; i++)
+            {
+                var tile = GetTile(new Vector3Int(position.x, position.y, i));
+                if (tile != null) list.Add(tile);
+            }
+            return list;
+        }
+
+        // picks the highest in order.
+        public TileData GetTile(Vector2Int position)
+        {
+            var tiles = GetTiles(position).ToList();
+            // return new empty data but with a null tile.
+            if (tiles.Count == 0) return new(MasterTilemap, new(position.x, position.y, 0), null);
+            else return tiles.OrderByDescending(q => q.Position.z).First();
+        }
+
+        public void SetTile(Vector3Int position, TileBase tile)
+        {
+            var z = position.z;
+            if (z < ZBounds.Min || z > ZBounds.Max)
+                throw new IndexOutOfRangeException($"Tile layer {z} is out of bounds. ({ZBounds.Min}-{ZBounds.Max})");
+
+            // in favor of scriptable objects
+            var existing = GetTile(position);
+            if (existing != null) Destroy(existing.Tile);
+            if (tile != null) tile = Instantiate(tile);
+
+            MasterTilemap.SetTile(position, tile);
+            MasterTilemap.RefreshTile(position);
+        }
+
+        public List<TileData> GetTilesInRange(Vector2Int position, int range)
+        {
+            var list = new List<TileData>();
+            for (int x = position.x - range; x <= position.x + range; x++)
+                for (int y = position.y - range; y <= position.y + range; y++)
+                    list.Add(GetTile(new Vector2Int(x, y)));
+            return list;
+        }
+
+        public List<TileData> GetAdjacentTiles(Vector2Int position)
+            => GetTilesInRange(position, 1)
+            .Where(q => new Vector2Int(q.Position.x, q.Position.y) != position)
+            .ToList();
+
+        public List<TileData> GetAdjacentTiles(Vector3Int position)
+            => GetAdjacentTiles(new Vector2Int(position.x, position.y));
 
         public List<TileData> GetAllPossibleTiles()
         {
             var list = new List<TileData>();
-            foreach (var layer in Layers)
-                list.AddRange(layer.Tilemap.GetTiles());
+            foreach (var pos in MasterTilemap.cellBounds.allPositionsWithin)
+            {
+                var tile = MasterTilemap.GetTile(pos);
+                if (tile != null) list.Add(new TileData(MasterTilemap, pos, tile));
+            }
             return list;
         }
 
-        public bool IsWalkable(Vector3 position)
+        public bool IsWalkable(TileData data)
         {
-            var tile = GetTile(position);
-            return IsWalkable(tile);
+            if (data != null && data.Tile is ICollisionProvider { } gt)
+                return !gt.IsProvidesCollisions();
+            else return true;
         }
 
-        public bool IsWalkable(TileData tile)
-            => !(tile != null && tile.Tilemap != null && tile.Tilemap.ProvideCollisions);
-    }
-
-    [Serializable] public class MapLayerDefinition
-    {
-        public string Name;
-        public TilemapDefinition Tilemap;
-
-        public MapLayerDefinition(string name, TilemapDefinition tilemap)
-        {
-            Name = name;
-            Tilemap = tilemap;
-        }
+        public bool IsWalkable(Vector2Int position)
+            => IsWalkable(GetTile(position));
     }
 }

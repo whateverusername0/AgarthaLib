@@ -5,7 +5,8 @@ using UnityEngine.Tilemaps;
 
 namespace AgarthaLib.Grid.Tiles
 {
-    public class BlendableRuleTile : RuleTile, ITagsContainer
+    [CreateAssetMenu(menuName = "AgarthaLib / Grid / Tiles / Blendable rule tile")]
+    public class BlendableRuleTile : GridRuleTile, ITagsContainer
     {
         public List<string> Tags;
         public List<string> GetTags() => Tags;
