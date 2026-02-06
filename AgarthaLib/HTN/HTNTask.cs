@@ -30,5 +30,6 @@ namespace AgarthaLib.HTN
         Completed,
         Continuing,
         Failed,
+        Unknown
     }
 }

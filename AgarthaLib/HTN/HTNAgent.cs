@@ -13,7 +13,7 @@ namespace AgarthaLib.HTN
         ///     Means 0 is the lowest.
         /// </summary>
         public List<HTNPlan> Blackboard;
-        public HTNTask SelectedTask;
+        public HTNTaskData SelectedTask;
 
         public float ThinkDelay = 1f;
 
@@ -25,35 +25,39 @@ namespace AgarthaLib.HTN
 
         protected virtual IEnumerator UpdateAgent()
         {
-            yield return new WaitForSeconds(ThinkDelay);
-
-            if (Blackboard == null)
-                yield return UpdateAgent();
-
-            foreach (var plan in Blackboard)
+            while (true)
             {
-                if (plan.Condition != null)
+                yield return new WaitForSeconds(ThinkDelay);
+
+                if (Blackboard == null || Blackboard.Count == 0)
+                    continue;
+
+                foreach (var plan in Blackboard)
                 {
-                    plan.Condition.UpdateCondition(this);
-                    if (!plan.Condition.ConditionMet)
-                        continue;
+                    if (plan.Condition != null)
+                    {
+                        plan.Condition.UpdateCondition(this);
+                        if (!plan.Condition.ConditionMet)
+                            continue;
+                    }
+                    SelectedTask = new(plan.Task);
                 }
 
-                SelectedTask = plan.Task;
-            }
-
-            if (SelectedTask != null)
-            {
-                var task = SelectedTask.TaskUpdateEnumerator(this);
-                while (task.MoveNext())
+                if (SelectedTask != null)
                 {
-                    yield return new WaitForEndOfFrame();
-                    if (task.Current == HTNTaskStatus.Continuing) continue;
-                    else break;
-                }
-            }
+                    var task = SelectedTask.Task.TaskUpdateEnumerator(this);
+                    while (task.MoveNext())
+                    {
+                        yield return null;
+                        SelectedTask.Status = task.Current;
 
-            SelectedTask = null;
+                        if (task.Current == HTNTaskStatus.Continuing) continue;
+                        else break;
+                    }
+                }
+
+                SelectedTask = null;
+            }
         }
     }
 
@@ -61,5 +65,16 @@ namespace AgarthaLib.HTN
     {
         public HTNCondition Condition;
         public HTNTask Task;
+    }
+
+    [Serializable] public class HTNTaskData
+    {
+        public HTNTask Task;
+        public HTNTaskStatus? Status;
+
+        public HTNTaskData(HTNTask task)
+        {
+            Task = task;
+        }
     }
 }
