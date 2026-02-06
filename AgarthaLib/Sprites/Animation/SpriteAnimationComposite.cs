@@ -6,7 +6,7 @@ namespace AgarthaLib.Sprites.Animation
     /// <summary>
     ///     Third base class. Unwraps into a list of sprite animations.
     /// </summary>
-    [CreateAssetMenu(menuName = "Agartha / Sprite animations / Sprite animation composite")]
+    [CreateAssetMenu(menuName = "AgarthaLib / Sprite animations / Sprite animation composite")]
     public class SpriteAnimationComposite : SpriteAnimationBase
     {
         public List<SpriteAnimation> Animations;

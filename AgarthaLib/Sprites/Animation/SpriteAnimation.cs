@@ -6,7 +6,7 @@ namespace AgarthaLib.Sprites.Animation
     /// <summary>
     ///     Second base class. Is used as a data structure in child classes.
     /// </summary>
-    [CreateAssetMenu(menuName = "Agartha / Sprite animations / Sprite animation")]
+    [CreateAssetMenu(menuName = "AgarthaLib / Sprite animations / Sprite animation")]
     public class SpriteAnimation : SpriteAnimationBase
     {
         public int FPS = 12;
