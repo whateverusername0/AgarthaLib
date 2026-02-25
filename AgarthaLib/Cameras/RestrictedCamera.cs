@@ -1,3 +1,4 @@
+using AgarthaLib.Attributes;
 using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
@@ -6,20 +7,22 @@ namespace AgarthaLib.Cameras
     [RequireComponent(typeof(Camera))]
     public class RestrictedCamera : AgarthanBehaviour
     {
-        [SerializeField] private Camera Camera;
+        [SerializeField, ValidateNull] private Camera Camera;
 
         public int FPS = 12;
         private float _updateTimer = 0f;
 
-        private void Start()
+        protected override void Start()
         {
-            Camera = Camera == null ? GetComponent<Camera>() : Camera;
+            base.Start();
             Camera.enabled = false;
         }
 
         // Update is called once per frame
-        private void Update()
+        protected override void Update()
         {
+            base.Update();
+
             _updateTimer += Time.deltaTime;
             if (_updateTimer >= 1 / FPS)
             {

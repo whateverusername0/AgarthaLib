@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AgarthaLib.Audio
 {
-    [CreateAssetMenu(menuName = "Agartha / Audio / Audio clip pool")]
+    [CreateAssetMenu(menuName = "AgarthaLib / Audio / Audio clip pool")]
     public class AudioClipPool : ScriptableObject
     {
         public List<AudioClip> Clips;

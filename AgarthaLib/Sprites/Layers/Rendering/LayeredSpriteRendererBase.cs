@@ -9,8 +9,10 @@ namespace AgarthaLib.Sprites.Layers.Rendering
         public LayeredSprite Sprite;
         protected SpriteLayerMap _lastMap;
 
-        protected void Update()
+        protected override void Update()
         {
+            base.Update();
+
             if (Sprite.LayerMap != _lastMap)
                 UpdateLayerMap();
 

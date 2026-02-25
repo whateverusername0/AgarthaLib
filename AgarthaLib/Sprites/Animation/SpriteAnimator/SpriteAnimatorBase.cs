@@ -1,4 +1,5 @@
 ﻿using AgarthaLib.MonoBehavior;
+using AgarthaLib.Timing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,52 +9,53 @@ namespace AgarthaLib.Sprites.Animation.SpriteAnimator
 {
     public abstract class SpriteAnimatorBase : AgarthanBehaviour
     {
-        public List<SpriteAnimatorQueueItem> Queue;
-        public SpriteAnimatorQueueItem CurrentAnimation;
-        public FrameCycleScale TimeScale;
-        public bool UseLateUpdate = false;
+        [SerializeField] protected List<SpriteAnimatorQueueItem> _queue;
+        [SerializeField] protected SpriteAnimatorQueueItem CurrentAnimation;
+        [SerializeField] protected TimeType TimeScale;
+        [SerializeField] protected bool UseLateUpdate = false;
 
         [SerializeField] private double _animTime = 0f;
         [SerializeField] private int _currentFrame = 0;
 
-        private void Update()
+        protected override void Update()
         {
-            if (UseLateUpdate
-            || TimeScale != FrameCycleScale.Normal && TimeScale != FrameCycleScale.Unscaled)
+            base.Update();
+
+            if (UseLateUpdate || TimeScale != TimeType.Normal && TimeScale != TimeType.Unscaled)
                 return;
 
-            _animTime += TimeScale == FrameCycleScale.Normal ? Time.deltaTime : Time.unscaledDeltaTime;
+            _animTime += TimeScale == TimeType.Normal ? Time.deltaTime : Time.unscaledDeltaTime;
 
             Cycle();
         }
 
         private void LateUpdate()
         {
-            if (!UseLateUpdate
-            || TimeScale != FrameCycleScale.Normal && TimeScale != FrameCycleScale.Unscaled)
+            if (!UseLateUpdate || TimeScale != TimeType.Normal && TimeScale != TimeType.Unscaled)
                 return;
 
-            _animTime += TimeScale == FrameCycleScale.Normal ? Time.deltaTime : Time.unscaledDeltaTime;
+            _animTime += TimeScale == TimeType.Normal ? Time.deltaTime : Time.unscaledDeltaTime;
 
             Cycle();
         }
 
         private void FixedUpdate()
         {
-            if (TimeScale != FrameCycleScale.Fixed)
+            if (TimeScale != TimeType.Fixed)
                 return;
 
-            _animTime = Time.fixedDeltaTime;
+            _animTime += Time.fixedDeltaTime;
+
             Cycle();
         }
 
         private void Cycle()
         {
-            if (Queue == null || Queue.Count == 0)
+            if (_queue == null || _queue.Count == 0)
                 return;
 
             if (CurrentAnimation == null || CurrentAnimation.Animation == null)
-                CurrentAnimation = Queue[0];
+                CurrentAnimation = _queue[0];
 
             Cycle(CurrentAnimation);
         }
@@ -75,7 +77,7 @@ namespace AgarthaLib.Sprites.Animation.SpriteAnimator
                     _currentFrame = 0;
                     item.EndAction?.Invoke();
 
-                    if (!anim.Loop || Queue.Count > 1)
+                    if (!anim.Loop || _queue.Count > 1)
                         MoveNext();
                 }
             }
@@ -93,27 +95,27 @@ namespace AgarthaLib.Sprites.Animation.SpriteAnimator
         public SpriteAnimatorBase MoveNext()
         {
             ClearPlayingAnimation();
-            if (Queue.Count >= 1)
-                Queue.RemoveAt(0);
+            if (_queue.Count >= 1)
+                _queue.RemoveAt(0);
             return this;
         }
 
         public SpriteAnimatorBase Enqueue(SpriteAnimation anim)
         {
-            Queue.Add(new(anim));
+            _queue.Add(new(anim));
             return this;
         }
 
         public SpriteAnimatorBase Enqueue(List<SpriteAnimation> anims)
         {
-            Queue.AddRange(anims.Select(q => new SpriteAnimatorQueueItem(q)).ToList());
+            _queue.AddRange(anims.Select(q => new SpriteAnimatorQueueItem(q)).ToList());
             return this;
         }
 
         public SpriteAnimatorBase ResetQueue()
         {
             ClearPlayingAnimation();
-            Queue.Clear();
+            _queue.Clear();
             CurrentAnimation = null;
             return this;
         }
@@ -145,15 +147,8 @@ namespace AgarthaLib.Sprites.Animation.SpriteAnimator
 
         public void SetLastFrameAction(Action @void)
         {
-            Queue.Last().EndAction = @void;
+            _queue.Last().EndAction = @void;
         }
-    }
-
-    [Serializable] public enum FrameCycleScale
-    {
-        Normal = 0,
-        Unscaled = 1,
-        Fixed = 2,
     }
 
     [Serializable] public class SpriteAnimatorQueueItem

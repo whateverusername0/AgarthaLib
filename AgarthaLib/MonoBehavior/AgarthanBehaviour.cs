@@ -1,6 +1,8 @@
-﻿using AgarthaLib.EventSystem;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.EventSystem;
 using AgarthaLib.EventSystem.EventBus;
 using AgarthaLib.Extensions;
+using AgarthaLib.Timing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,6 +91,81 @@ namespace AgarthaLib.MonoBehavior
 
             var children = transform.GetChildren().Select(q => q.gameObject).ToList();
             RelayEvent(children, ref args);
+        }
+
+        #endregion
+
+        #region Timers
+
+        private readonly List<TimerInstance> _timers = new();
+
+        protected void RegisterTimer(float delay, Action a, bool overwrite = false)
+        {
+            var existing = GetTimer(a);
+            if (existing != null)
+            {
+                if (overwrite) UnregisterTimer(existing);
+                else throw new ArgumentException("Action");
+            }
+
+            _timers.Add(new(delay, a));
+        }
+
+        protected void UnregisterTimer(TimerInstance inst)
+            => _timers.Remove(inst);
+
+        protected void UnregisterTimer(Action a)
+        {
+            var existing = GetTimer(a);
+            if (existing != null) UnregisterTimer(existing);
+        }
+
+        protected TimerInstance GetTimer(Action a)
+        {
+            var existing = _timers.Where(q => q.Action == a).FirstOrDefault();
+            if (existing != null) return existing;
+            return null;
+        }
+
+        #endregion
+
+        protected virtual void Start()
+        {
+            ValidateNull();
+        }
+
+        protected virtual void Update()
+        {
+            UpdateTimers();
+        }
+
+        #region Helper Methods
+
+        private void ValidateNull()
+        {
+            var fields = GetType().GetFields();
+            foreach (var item in fields.Where(q => Attribute.IsDefined(q, typeof(ValidateNullAttribute))))
+            {
+                if (item.FieldType.IsSubclassOf(typeof(Component)))
+                {
+                    var value = item.GetValue(this) as Component;
+                    item.SetValue(this, value == null ? GetComponent(item.FieldType) : value);
+                }
+            }
+        }
+
+        private void UpdateTimers()
+        {
+            if (_timers.Count == 0) return;
+            foreach (var timer in _timers)
+            {
+                timer.Timer -= Time.deltaTime;
+                if (timer.Timer <= 0)
+                {
+                    timer.Timer = timer.Delay;
+                    timer.Action.Invoke();
+                }
+            }
         }
 
         #endregion
