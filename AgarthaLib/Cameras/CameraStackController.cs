@@ -10,10 +10,11 @@ namespace AgarthaLib.Cameras
     public class CameraStackController : AgarthanBehaviour
     {
         [SerializeField, OnChangedCall(nameof(Start))] private Camera BaseCamera;
-        [SerializeField, ReadOnly] private List<Camera> CameraStack;
+        [SerializeField, EditorReadOnly] private List<Camera> CameraStack;
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
             if (BaseCamera == null) return;
             CameraStack = BaseCamera.GetUniversalAdditionalCameraData().cameraStack;
         }
