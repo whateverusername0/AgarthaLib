@@ -4,7 +4,7 @@ using UnityEngine.Tilemaps;
 
 namespace AgarthaLib.Grid
 {
-    [Serializable] public class TileData
+    [Serializable] public class TileData : TileData<TileBase>
     {
         public TileData(Tilemap tilemap, Vector3Int position) : base(tilemap, position) { }
         public TileData(Tilemap tilemap, Vector3Int position, TileBase tile) : base(tilemap, position, tile) { }
@@ -14,7 +14,7 @@ namespace AgarthaLib.Grid
     {
         public Tilemap Tilemap;
         public Vector3Int Position;
-        public TileBase Tile;
+        public T Tile;
 
         public TileData(Tilemap tilemap, Vector3Int position)
         {
@@ -30,17 +30,6 @@ namespace AgarthaLib.Grid
             Tilemap = obj.Tilemap;
             Position = obj.Position;
             Tile = obj.Tile;
-        }
-
-    [Serializable] public class TileData<T> where T : TileBase
-    {
-        public Vector3Int Position;
-        public T Tile;
-
-        public TileData(Vector3Int position, T tile)
-        {
-            this.Position = position;
-            this.Tile = tile;
         }
     }
 }
