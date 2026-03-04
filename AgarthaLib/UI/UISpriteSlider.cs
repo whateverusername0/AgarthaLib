@@ -6,7 +6,7 @@ namespace AgarthaLib.UI
 {
     public class UISpriteSlider : MonoBehaviour
     {
-        public MinMax Thresholds;
+        public ValueRange Thresholds;
 
         [Range(0f, 1f)] [SerializeField] private float _value;
         public float Value

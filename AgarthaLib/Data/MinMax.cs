@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace AgarthaLib.Data
 {
-    [Serializable] public struct MinMax
+    [Serializable] public struct ValueRange<T> where T : IComparable<T>
     {
-        public float Min, Max;
+        public T Min, Max;
 
-        public MinMax(float min, float max)
+        public ValueRange(T min, T max)
         {
             Min = min;
             Max = max;
