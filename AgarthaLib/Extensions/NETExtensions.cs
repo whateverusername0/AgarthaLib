@@ -11,6 +11,9 @@ namespace AgarthaLib.Extensions
         public static int Reverse(this int @object, int max)
             => max - @object;
 
+        public static bool IsValid<T>(this List<T> @object)
+            => @object != null && @object.Count > 0;
+
         public static List<T> Reverse<T>(this List<T> @object)
         {
             var list = new List<T>(@object);

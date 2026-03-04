@@ -2,25 +2,23 @@
 
 namespace AgarthaLib.MonoBehavior
 {
-    public class TimedDespawn : MonoBehaviour
+    public class TimedDespawn : AgarthanBehaviour
     {
         public GameObject BoundObject;
         public float Lifetime = 1f;
-        private float LifetimeTimer = 1f;
+        public GameObject SpawnOnDespawn;
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
+
             BoundObject = BoundObject == null ? gameObject : BoundObject;
-            LifetimeTimer = Lifetime;
-        }
-
-        private void Update()
-        {
-            LifetimeTimer -= Time.deltaTime;
-            if (LifetimeTimer <= 0)
+            RegisterTimer(Lifetime, () =>
             {
-                if (BoundObject != null) Destroy(BoundObject);
-            }
+                if (SpawnOnDespawn != null)
+                    Instantiate(SpawnOnDespawn, BoundObject.transform.position, Quaternion.identity);
+                Destroy(BoundObject);
+            });
         }
 
         public static void Add(GameObject boundObject, float lifetime)
