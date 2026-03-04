@@ -20,7 +20,7 @@ namespace AgarthaLib.Extensions
 
         public static float Normalize(this float @object, float min, float max)
             => (@object - min) / (max - min);
-        public static float Normalize(this float @object, ValueRange thresholds)
+        public static float Normalize(this float @object, ValueRange<float> thresholds)
             => Normalize(@object, thresholds.Min, thresholds.Max);
     }
 }

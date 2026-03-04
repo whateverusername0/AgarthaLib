@@ -1,4 +1,4 @@
-﻿using AgarthaLib.Data;
+﻿using AgarthaLib.Data.Serialization.SerializedTypes;
 using TMPro;
 using UnityEngine;
 
@@ -6,7 +6,7 @@ namespace AgarthaLib.UI
 {
     public class UIPercentageDisplay : MonoBehaviour
     {
-        public ValueRange Range;
+        public SerializedFloat Range;
         public TMP_Text Text;
 
         public bool UseLerp = true;

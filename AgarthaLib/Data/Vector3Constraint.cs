@@ -2,8 +2,7 @@
 
 namespace AgarthaLib.Data
 {
-    [Serializable]
-    public struct Vector3Constraint
+    [Serializable] public struct Vector3Constraint
     {
         public bool X, Y, Z;
 
