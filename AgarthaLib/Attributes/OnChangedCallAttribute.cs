@@ -25,8 +25,9 @@ namespace AgarthaLib.Attributes
             EditorGUI.PropertyField(position, property, label);
             if (EditorGUI.EndChangeCheck())
             {
-                OnChangedCallAttribute at = attribute as OnChangedCallAttribute;
-                MethodInfo method = property.serializedObject.targetObject.GetType().GetMethods().Where(m => m.Name == at.MethodName).First();
+                var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Default;
+                var at = attribute as OnChangedCallAttribute;
+                var method = property.serializedObject.targetObject.GetType().GetMethods(flags).Where(m => m.Name == at.MethodName).First();
                 if (method != null && method.GetParameters().Count() == 0) // Only instantiate methods with 0 parameters
                     method.Invoke(property.serializedObject.targetObject, null);
             }

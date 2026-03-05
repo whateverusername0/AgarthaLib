@@ -4,6 +4,7 @@ using AgarthaLib.EventSystem.EventBus;
 using AgarthaLib.Extensions;
 using AgarthaLib.Timing;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -132,11 +133,31 @@ namespace AgarthaLib.MonoBehavior
         protected virtual void Start()
         {
             ValidateNull();
+
+            // add LateFixedUpdate();
+            StartCoroutine(LateFixedUpdateEnumerator());
         }
 
         protected virtual void Update()
         {
             UpdateTimers();
+        }
+
+        private IEnumerator LateFixedUpdateEnumerator()
+        {
+            var wffu = new WaitForFixedUpdate();
+            while (this != null)
+            {
+                yield return wffu;
+                try { LateFixedUpdate(); }
+                // fault tolerance
+                catch (Exception e) { Debug.LogException(e); }
+            }
+        }
+
+        protected virtual void LateFixedUpdate()
+        {
+
         }
 
         #region Helper Methods
@@ -146,10 +167,13 @@ namespace AgarthaLib.MonoBehavior
             var fields = GetType().GetFields();
             foreach (var item in fields.Where(q => Attribute.IsDefined(q, typeof(ValidateNullAttribute))))
             {
+                var type = item.FieldType;
+                var att = (ValidateNullAttribute)Attribute.GetCustomAttribute(item, typeof(ValidateNullAttribute));
                 if (item.FieldType.IsSubclassOf(typeof(Component)))
                 {
+                    var fallback = att.Traverse ? GetComponentInChildren(type) : GetComponent(type);
                     var value = item.GetValue(this) as Component;
-                    item.SetValue(this, value == null ? GetComponent(item.FieldType) : value);
+                    item.SetValue(this, value != null ? value : fallback);
                 }
             }
         }
