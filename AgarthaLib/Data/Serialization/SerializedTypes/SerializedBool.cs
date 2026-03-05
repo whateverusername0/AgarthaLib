@@ -1,6 +1,8 @@
+using System;
+
 namespace AgarthaLib.Data.Serialization.SerializedTypes
 {
-    public class SerializedBool : SerializedProperty<bool>
+    [Serializable] public class SerializedBool : SerializedProperty<bool>
     {
         public SerializedBool(bool value) : base(value) { }
 

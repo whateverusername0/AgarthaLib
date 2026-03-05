@@ -1,6 +1,8 @@
+using System;
+
 namespace AgarthaLib.Data.Serialization.SerializedTypes
 {
-    public class SerializedFloat : SerializedNumeric<float>
+    [Serializable] public class SerializedFloat : SerializedNumeric<float>
     {
         public SerializedFloat(float value) : base(value) { }
 

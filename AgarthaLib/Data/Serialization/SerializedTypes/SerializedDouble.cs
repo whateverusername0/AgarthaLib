@@ -1,6 +1,8 @@
+using System;
+
 namespace AgarthaLib.Data.Serialization.SerializedTypes
 {
-    public class SerializedDouble : SerializedNumeric<double>
+    [Serializable] public class SerializedDouble : SerializedNumeric<double>
     {
         public SerializedDouble(double value) : base(value) { }
 

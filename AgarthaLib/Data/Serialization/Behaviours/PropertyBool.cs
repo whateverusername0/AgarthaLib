@@ -1,4 +1,6 @@
-﻿namespace AgarthaLib.Data.Serialization.Behaviours
+﻿using AgarthaLib.Data.Serialization.SerializedTypes;
+
+namespace AgarthaLib.Data.Serialization.Behaviours
 {
-    public class PropertyBool : SerializedPropertyBridge<bool> { }
+    public class PropertyBool : SerializedPropertyBridge<SerializedBool, bool> { }
 }

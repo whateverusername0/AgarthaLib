@@ -2,11 +2,13 @@
 
 namespace AgarthaLib.Data.Serialization.Behaviours
 {
-    public abstract class SerializedPropertyBridge<T> : MonoBehaviour where T : struct
+    public abstract class SerializedPropertyBridge<T, Q> : MonoBehaviour where T : SerializedProperty<Q> where Q : struct
     {
-        public SerializedProperty<T> Property;
+        public T Property;
 
-        public static explicit operator SerializedProperty<T>(SerializedPropertyBridge<T> @this)
+        public Q Value => Property.Value;
+
+        public static explicit operator SerializedProperty<Q>(SerializedPropertyBridge<T, Q> @this)
             => @this.Property;
     }
 }

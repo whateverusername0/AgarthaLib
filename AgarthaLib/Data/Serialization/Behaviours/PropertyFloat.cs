@@ -2,5 +2,5 @@
 
 namespace AgarthaLib.Data.Serialization.Behaviours
 {
-    public class PropertyInt : SerializedPropertyBridge<SerializedInt, int> { }
+    public class PropertyFloat : SerializedPropertyBridge<SerializedFloat, float> { }
 }

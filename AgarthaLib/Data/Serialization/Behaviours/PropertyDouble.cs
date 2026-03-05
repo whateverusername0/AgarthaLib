@@ -1,4 +1,6 @@
-﻿namespace AgarthaLib.Data.Serialization.Behaviours
+﻿using AgarthaLib.Data.Serialization.SerializedTypes;
+
+namespace AgarthaLib.Data.Serialization.Behaviours
 {
-    public class PropertyDouble : SerializedPropertyBridge<double> { }
+    public class PropertyDouble : SerializedPropertyBridge<SerializedDouble, double> { }
 }

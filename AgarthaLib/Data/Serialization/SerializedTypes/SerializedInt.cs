@@ -1,6 +1,8 @@
+using System;
+
 namespace AgarthaLib.Data.Serialization.SerializedTypes
 {
-    public class SerializedInt : SerializedNumeric<int>
+    [Serializable] public class SerializedInt : SerializedNumeric<int>
     {
         public SerializedInt(int value) : base(value) { }
 

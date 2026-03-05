@@ -4,7 +4,7 @@ using UnityEngine;
 namespace AgarthaLib.Data.Serialization
 {
     // TODO: Change to INumber?
-    public abstract class SerializedNumeric<T> : SerializedProperty<T> where T : struct, IComparable<T>
+    [Serializable] public abstract class SerializedNumeric<T> : SerializedProperty<T> where T : struct, IComparable<T>
     {
         [SerializeField] protected ValueRange<T> _range;
 

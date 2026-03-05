@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AgarthaLib.Data.Serialization
 {
-    public class JsonDocument<T> : IJsonSerializable<JsonDocument<T>>, ISaveable<JsonDocument<T>>
+    [Serializable] public class JsonDocument<T> : IJsonSerializable<JsonDocument<T>>, ISaveable<JsonDocument<T>>
     {
         public string RelativePath { get; protected set; }
         public string GetFullPath() => Path.Combine(Environment.CurrentDirectory, RelativePath);
