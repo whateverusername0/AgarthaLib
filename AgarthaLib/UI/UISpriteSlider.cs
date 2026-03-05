@@ -6,7 +6,7 @@ namespace AgarthaLib.UI
 {
     public class UISpriteSlider : MonoBehaviour
     {
-        [SerializeReference] public ValueRange<float> Thresholds;
+        public ValueRange<float> Thresholds;
 
         [Range(0f, 1f)] [SerializeField] private float _value;
         public float Value
@@ -25,7 +25,7 @@ namespace AgarthaLib.UI
             var t = MovementConstraint;
             var pos = @transform.localPosition;
 
-            var targetPos = (Thresholds.Max + (Thresholds.Min * Value)).Reverse(Thresholds.Min);
+            float targetPos = (Thresholds.Max + (Thresholds.Min * Value)).Reverse(Thresholds.Min);
             var vecPos = new Vector3(t.X ? targetPos : pos.x, t.Y ? targetPos : pos.y, t.Z ? targetPos : pos.z);
 
             transform.localPosition = UseLerp ? Vector3.Lerp(pos, vecPos, Time.deltaTime * LerpSpeed) : vecPos;
