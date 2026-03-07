@@ -116,5 +116,12 @@ namespace AgarthaLib.Extensions
 
         public static bool IsInLayerMask(this GameObject @object, LayerMask lm)
             => lm == (lm | (1 << @object.layer));
+
+        // todo move to it's own file
+        public static bool IsVisibleFrom(this Renderer renderer, Camera camera)
+        {
+            var planes = GeometryUtility.CalculateFrustumPlanes(camera);
+            return GeometryUtility.TestPlanesAABB(planes, renderer.bounds);
+        }
     }
 }
