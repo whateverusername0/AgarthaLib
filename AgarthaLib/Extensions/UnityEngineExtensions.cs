@@ -2,11 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace AgarthaLib.Extensions
 {
     public static class UnityEngineExtensions
     {
+        #region Objects
+
+        public static void SafeDestroy(this UnityEngine.Object _, UnityEngine.Object obj)
+        {
+            if (Application.isPlaying) UnityEngine.Object.Destroy(obj);
+            else UnityEngine.Object.DestroyImmediate(obj);
+        }
+
+        #endregion
+
         #region Components
 
         public static bool HasComponent<T>(this GameObject @object) where T : Component
@@ -59,24 +70,35 @@ namespace AgarthaLib.Extensions
         public static T EnsureComponent<T>(this Component @object) where T : Component
             => @object.gameObject.EnsureComponent<T>();
 
+        public static Component Clone(this Component original, Component destination)
+        {
+            var type = original.GetType();
+            var fields = type.GetFields();
+            foreach (var field in fields)
+                field.SetValue(destination, field.GetValue(original));
+            return destination;
+        }
+
+        public static T Clone<T>(this T original, T destination) where T : Component
+        {
+            var type = original.GetType();
+            var fields = type.GetFields();
+            foreach (var field in fields)
+                field.SetValue(destination, field.GetValue(original));
+            return destination as T;
+        }
+
         public static Component Clone(this Component original, GameObject destination)
         {
             var type = original.GetType();
-            var copy = destination.EnsureComponent(type);
-            var fields = type.GetFields();
-            foreach (var field in fields)
-                field.SetValue(copy, field.GetValue(original));
-            return copy;
+            var comp = destination.EnsureComponent(type);
+            return original.Clone(comp);
         }
 
         public static T Clone<T>(this T original, GameObject destination) where T : Component
         {
-            var type = original.GetType();
-            Component copy = destination.EnsureComponent<T>();
-            var fields = type.GetFields();
-            foreach (var field in fields)
-                field.SetValue(copy, field.GetValue(original));
-            return copy as T;
+            var comp = destination.EnsureComponent<T>();
+            return original.Clone(comp);
         }
 
         #endregion
@@ -114,14 +136,36 @@ namespace AgarthaLib.Extensions
 
         #endregion
 
+        #region Rendering
+
         public static bool IsInLayerMask(this GameObject @object, LayerMask lm)
             => lm == (lm | (1 << @object.layer));
 
-        // todo move to it's own file
-        public static bool IsVisibleFrom(this Renderer renderer, Camera camera)
+        // TODO: move to it's own file
+        public static bool IsVisibleFrom(this Bounds bounds, Camera camera)
         {
             var planes = GeometryUtility.CalculateFrustumPlanes(camera);
-            return GeometryUtility.TestPlanesAABB(planes, renderer.bounds);
+            return GeometryUtility.TestPlanesAABB(planes, bounds);
         }
+
+        public static bool IsVisibleFrom(this Renderer renderer, Camera camera)
+            => renderer.bounds.IsVisibleFrom(camera);
+
+        /// <summary>
+        ///     Gets a pipeline asset.
+        /// </summary>
+        /// <param name="ass">The used scriptable pipeline.</param>
+        /// <returns>If a scriptable pipeline is being used. If not, it's a Built-in renderer.</returns>
+        public static bool TryGetUsedPipeline(out RenderPipelineAsset ass)
+        {
+            var graphicsPipeline = GraphicsSettings.defaultRenderPipeline;
+            var qualityPipeline = QualitySettings.renderPipeline;
+
+            // use qualitypipeline as fallback
+            ass = graphicsPipeline ? graphicsPipeline : qualityPipeline;
+            return ass != null;
+        }
+
+        #endregion
     }
 }
