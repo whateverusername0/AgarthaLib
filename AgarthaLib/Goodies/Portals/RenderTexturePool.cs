@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace AgarthaLib.Goodies.Rendering
+namespace AgarthaLib.Goodies.Portals
 {
     public class RenderTexturePool : AgarthanSingleton<RenderTexturePool>
     {
@@ -27,7 +27,9 @@ namespace AgarthaLib.Goodies.Rendering
 
             var @new = CreateTexture();
             _pool.Add(@new);
+            @new.RenderTexture.name = _pool.Count.ToString();
             @new.Used = true;
+
             Debug.Log($"New {typeof(RenderTexture)} created. Pool is now this ({_pool.Count}) big.");
 
             return @new;

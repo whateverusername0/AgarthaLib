@@ -1,7 +1,6 @@
 ﻿using AgarthaLib.Attributes;
 using AgarthaLib.Collision;
 using AgarthaLib.Extensions;
-using AgarthaLib.Goodies.Rendering;
 using AgarthaLib.MonoBehavior;
 using System;
 using System.Collections.Generic;
@@ -17,13 +16,11 @@ namespace AgarthaLib.Goodies.Portals
         private struct VisiblePortalResource
         {
             public AgarthanPortal VisiblePortal;
-            public RenderTexturePoolItem PoolItem;
             public Texture OriginalTexture;
 
-            public VisiblePortalResource(AgarthanPortal visiblePortal, RenderTexturePoolItem poolItem, Texture originalTexture)
+            public VisiblePortalResource(AgarthanPortal visiblePortal, Texture originalTexture)
             {
                 VisiblePortal = visiblePortal;
-                PoolItem = poolItem;
                 OriginalTexture = originalTexture;
             }
         }
@@ -36,20 +33,31 @@ namespace AgarthaLib.Goodies.Portals
         [EditorReadOnly] public List<AgarthanPortal> VisiblePortals = new();
 
         [Header("Collision")]
-        public bool PortalFunctionality = true;
+        public bool CanPassThrough = true;
+        public List<Type> PassthroughTypes = new()
+        {
+            typeof(Rigidbody),
+            typeof(Rigidbody2D),
+            typeof(CharacterController)
+        };
         [SerializeField, EditorReadOnly] private List<Transform> _collidingObjects = new();
         [SerializeField, EditorReadOnly] private List<Transform> _objectRemovalQueue = new();
 
         [Header("Rendering")]
+        [ValidateNull(traverse: true)] public Camera Camera;
+        [SerializeField] private RenderTexture _rt;
         public Renderer MeshRenderer;
         public Texture FallbackDepthTexture;
-        public int MaxDepthOverride = 2;
-        [EditorReadOnly] public Vector4 VectorPlane;
+        public bool InfiniteDepth = true;
+        public int MaxDepth = 2;
+        public int Downscale = 2;
 
-        [Header("Legacy Rendering")]
-        public bool UseLegacyRendering = false;
-        [ValidateNull(traverse: true)] public Camera Camera;
-        [SerializeField, EditorReadOnly] private RenderTexture _rt;
+        [Header("Debug")]
+        [NonSerialized] public Vector4 VectorPlane;
+        [SerializeField, EditorReadOnly] private bool _isBeingRendered = false;
+        public bool IsBeingRendered => MeshRenderer.isVisible
+                && MeshRenderer.IsVisibleFrom(_mainCamera)
+                && PortalOcclusionVolume.IsInSameVolume(_mainCamera, this);
 
         private UniversalRenderPipeline.SingleCameraRequest _request = new();
 
@@ -57,27 +65,30 @@ namespace AgarthaLib.Goodies.Portals
         {
             base.Start();
 
-            if (UseLegacyRendering)
-            {
-                if (_rt == null)
-                {
-                    _rt = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.Default);
-                    _rt.Create();
-                }
-                Camera.targetTexture = _rt;
-                MeshRenderer.material.mainTexture = _rt;
-            }
-
-            var plane = new Plane(NormalVisible.forward, transform.position);
-            VectorPlane = new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance);
+            ResolveDependencies();
 
             SubscribeEvent<CollisionEnterEvent>(OnCollisionEnterEvent);
             SubscribeEvent<CollisionExitEvent>(OnCollisionExitEvent);
         }
 
+        private void ResolveDependencies()
+        {
+            if (_rt == null)
+            {
+                _rt = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32);
+                _rt.name = this.name;
+                _rt.Create();
+            }
+            Camera.targetTexture = _rt;
+            MeshRenderer.sharedMaterial.mainTexture = _rt;
+
+            var plane = new Plane(NormalVisible.forward, transform.position);
+            VectorPlane = new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance);
+        }
+
         private void OnDestroy()
         {
-            if (UseLegacyRendering && _rt != null)
+            if (_rt != null)
             {
                 _rt.Release();
                 Destroy(_rt);
@@ -86,64 +97,40 @@ namespace AgarthaLib.Goodies.Portals
 
         private void LateUpdate()
         {
-            if (!UseLegacyRendering) return;
-
-            // Not visible? Fuck off.
-            if (!MeshRenderer.isVisible
-            || !MeshRenderer.IsVisibleFrom(_mainCamera)
-            || !PortalOcclusionVolume.IsInSameVolume(_mainCamera, this))
+            _isBeingRendered = IsBeingRendered;
+            if (!_isBeingRendered)
                 return;
 
-            Render(Camera, LinkedPortal);
-        }
-
-        public void Render(Camera cam, AgarthanPortal target, int depth = 0, AgarthanPortal caller = null)
-        {
-            // No link? Turn into a mirror I guess.
-            if (target == null) target = this;
-
-            var virtualPosition = _mainCamera.transform.position;
-            var virtualRotation = _mainCamera.transform.rotation;
-            cam.transform.SetPositionAndRotation(virtualPosition, virtualRotation);
-
-            // Calculate projection matrix
-            // Set portal camera projection matrix to clip walls between target portal and portal camera
-            // Inherits main camera near/far clip plane and FOV settings
-            var clip = Matrix4x4.Transpose(Matrix4x4.Inverse(cam.worldToCameraMatrix)) * target.VectorPlane;
-            cam.projectionMatrix = _mainCamera.CalculateObliqueMatrix(clip);
-
-            //cam.Render();
-            RenderPipeline.SubmitRenderRequest(cam, _request);
+            var mc = _mainCamera.transform;
+            RecursiveRender(mc.position, mc.rotation, out _, Camera, 0);
         }
 
         public void RecursiveRender(Vector3 refPos, Quaternion refRot,
-            out RenderTexturePoolItem tempItem, out Texture originalTexture,
-            Camera cam, int depth, int maxDepth)
+            out Texture originalTexture,
+            Camera cam, int depth)
         {
             var virtualPosition = TransformPosition(this, LinkedPortal, refPos);
             var virtualRotation = TransformRotation(this, LinkedPortal, refRot);
             cam.transform.SetPositionAndRotation(virtualPosition, virtualRotation);
 
             var clip = Matrix4x4.Transpose(Matrix4x4.Inverse(cam.worldToCameraMatrix)) * LinkedPortal.VectorPlane;
-            var obliqueProjectionMatrix = _mainCamera.CalculateObliqueMatrix(clip);
+            var obliqueProjectionMatrix = cam.CalculateObliqueMatrix(clip);
             cam.projectionMatrix = obliqueProjectionMatrix;
 
             var vprList = new List<VisiblePortalResource>();
-            var actualMaxDepth = LinkedPortal.MaxDepthOverride > 0 ? LinkedPortal.MaxDepthOverride : maxDepth;
-            if (depth < actualMaxDepth && LinkedPortal.VisiblePortals.Count > 0)
+            if (depth < MaxDepth && LinkedPortal.VisiblePortals.Count > 0)
             {
                 foreach (var visiblePortal in LinkedPortal.VisiblePortals)
                 {
-                    if (!visiblePortal.MeshRenderer.isVisible || !visiblePortal.MeshRenderer.IsVisibleFrom(_mainCamera))
+                    if (!visiblePortal.MeshRenderer.IsVisibleFrom(cam))
                         continue;
 
                     visiblePortal.RecursiveRender(
                         virtualPosition, virtualRotation,
-                        out var visibleTempItem,
                         out var visibleTexture,
-                        cam, depth + 1, maxDepth);
+                        cam, depth + 1);
 
-                    vprList.Add(new(visiblePortal, visibleTempItem, visibleTexture));
+                    vprList.Add(new(visiblePortal, visibleTexture));
                 }
             }
             else
@@ -152,42 +139,41 @@ namespace AgarthaLib.Goodies.Portals
                 {
                     var visibleTexture = MeshRenderer.material.mainTexture;
                     MeshRenderer.material.mainTexture = FallbackDepthTexture;
-                    vprList.Add(new(visiblePortal, null, visibleTexture));
+                    vprList.Add(new(visiblePortal, visibleTexture));
                 }
             }
 
-            tempItem = RenderTexturePool.Instance.GetTexture();
-
-            cam.targetTexture = tempItem.RenderTexture;
+            cam.targetTexture = _rt;
             cam.transform.SetPositionAndRotation(virtualPosition, virtualRotation);
             cam.projectionMatrix = obliqueProjectionMatrix;
 
-            //cam.Render();
-            RenderPipeline.SubmitRenderRequest(cam, _request);
+            // Camera.Render().
+            if (UnityEngineExtensions.TryGetUsedPipeline(out _))
+                RenderPipeline.SubmitRenderRequest(cam, _request);
+            else cam.Render();
 
             foreach (var resource in vprList)
             {
                 // Reset to original texture
                 // So that it will remain correct if the visible portal is still expecting to be rendered
-                // on another camera but has already rendered its texture. Originally the texture may be overriden by other renders.
+                // on another camera but has already rendered its texture.
+                // Originally the texture may be overriden by other renders.
                 resource.VisiblePortal.MeshRenderer.material.mainTexture = resource.OriginalTexture;
-
-                // Release temp render texture
-                if (resource.PoolItem != null)
-                    RenderTexturePool.Instance.ReleaseTexture(resource.PoolItem);
             }
 
-            // Must be after camera render, in case it renders itself (in which the texture must not be replaced before rendering itself)
-            // Must be after restore, in case it restores its own old texture (in which the new texture must take precedence)
+            // Must be after camera render, in case it renders itself
+            // (in which the texture must not be replaced before rendering itself)
+            // Must be after restore, in case it restores its own old texture
+            // (in which the new texture must take precedence)
             originalTexture = MeshRenderer.material.mainTexture;
-            MeshRenderer.material.mainTexture = tempItem.RenderTexture;
+            MeshRenderer.material.mainTexture = _rt;
         }
 
         protected override void LateFixedUpdate()
         {
             base.LateFixedUpdate();
 
-            if (!PortalFunctionality)
+            if (!CanPassThrough)
                 return;
 
             _objectRemovalQueue.Clear();
@@ -224,8 +210,11 @@ namespace AgarthaLib.Goodies.Portals
 
         private void OnDrawGizmos()
         {
-            Gizmos.color = Color.red;
+            Gizmos.color = Color.white;
+            Gizmos.DrawLine(transform.position, transform.position + transform.forward);
+            Gizmos.DrawLine(transform.position, transform.position + transform.up);
 
+            Gizmos.color = Color.red;
             if (LinkedPortal != null && LinkedPortal != this)
                 Gizmos.DrawLine(transform.position, LinkedPortal.transform.position);
         }
@@ -244,6 +233,11 @@ namespace AgarthaLib.Goodies.Portals
         private void OnCollisionEnterEvent(GameObject invoker, ref CollisionEnterEvent args)
         {
             var other = args.Other.transform.root;
+            var compRegistry = other.GetComponents<Component>();
+            // check if it has any valid components for it to pass through.
+            if (compRegistry.Where(q => PassthroughTypes.Any(w => q.GetType() == w)).Count() == 0)
+                return;
+
             if (!_collidingObjects.Contains(other))
                 _collidingObjects.Add(other);
         }
@@ -260,7 +254,7 @@ namespace AgarthaLib.Goodies.Portals
             Predicate<Collider> overlapPred =
                 (q) => q.transform == transform || !q.isTrigger || !q.HasComponent<AgarthanPortal>();
 
-            if (!Extensions.Physics.OverlapSphereUnoccluded(transform.position, 10f, out var hits, overlapPred))
+            if (!Extensions.Physics.OverlapHalfSphereUnoccluded(transform.position, NormalVisible.forward, 50f, out var hits, overlapPred))
                 return;
 
             var valid = hits.Where(q => q.HasComponent<AgarthanPortal>()).ToList();

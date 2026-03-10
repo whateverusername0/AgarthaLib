@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace AgarthaLib.Goodies.Rendering
+namespace AgarthaLib.Goodies.Portals
 {
     [Serializable] public class RenderTexturePoolItem : IDisposable
     {
