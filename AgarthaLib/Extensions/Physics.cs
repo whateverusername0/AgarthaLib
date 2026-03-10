@@ -1,6 +1,7 @@
 ﻿using AgarthaLib.Goodies.Portals;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace AgarthaLib.Extensions
@@ -41,7 +42,8 @@ namespace AgarthaLib.Extensions
         ///     A <see cref="UnityEngine.Physics.OverlapSphere(Vector3, float, int)"/> variation
         ///     that outputs objects not valid to the `overlapCondition`.
         /// </summary>
-        public static bool OverlapSphereUnoccluded(Vector3 position, float radius, out Collider[] hits, Predicate<Collider> overlapCondition, int mask = -1)
+        public static bool OverlapSphereUnoccluded(Vector3 position, float radius,
+            out Collider[] hits, Predicate<Collider> overlapCondition, int mask = -1)
         {
             hits = new Collider[0];
 
@@ -62,7 +64,20 @@ namespace AgarthaLib.Extensions
                 }
             }
 
-            hits = cache.ToArray();
+            hits = cache.Distinct().ToArray();
+            return true;
+        }
+
+        public static bool OverlapHalfSphereUnoccluded(Vector3 position, Vector3 forward, float radius,
+            out Collider[] hits, Predicate<Collider> overlapCondition, int mask = -1)
+        {
+            hits = new Collider[0];
+            if (!OverlapSphereUnoccluded(position, radius, out hits, overlapCondition, mask))
+                return false;
+
+            // if Vector3.Dot() <= 0 -> object is behind the "half sphere" thus invalid.
+            hits = hits.Where(q => Vector3.Dot((q.transform.position - position).normalized, forward) > 0)
+                .Distinct().ToArray();
             return true;
         }
     }
