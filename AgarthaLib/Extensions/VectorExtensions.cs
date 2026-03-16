@@ -21,5 +21,8 @@ namespace AgarthaLib.Extensions
 
         public static Vector2 Multiply(this Vector2 a, Vector2 b)
             => new(a.x * b.x, a.y * b.y);
+
+        public static Vector3 XZ(this Vector3 v)
+            => new(v.x, 0, v.z);
     }
 }
