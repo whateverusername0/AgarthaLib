@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace AgarthaLib.Extensions
 {
-    public static class Physics
+    public static class PortalAwarePhysics
     {
         public static bool RaycastPortalAware(Vector3 position, Vector3 direction, float distance, out RaycastHit[] result, int mask = -1)
         {
@@ -20,8 +20,8 @@ namespace AgarthaLib.Extensions
                 if (hit.collider.TryGetComponent<AgarthanPortal>(out var p))
                 {
                     // ray world bending magic
-                    var pos = AgarthanPortal.TransformPosition(p, p.LinkedPortal, position);
-                    var dir = AgarthanPortal.TransformDirection(p, p.LinkedPortal, direction);
+                    var pos = p.TransformPosition(position);
+                    var dir = p.TransformDirection(direction);
 
                     // subtract the distance so that it won't go forever.
                     var dist = Mathf.Max(distance - Vector3.Distance(hit.collider.transform.position, position), 0);

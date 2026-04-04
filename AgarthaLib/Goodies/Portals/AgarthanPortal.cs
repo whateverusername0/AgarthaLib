@@ -13,18 +13,6 @@ namespace AgarthaLib.Goodies.Portals
 {
     public class AgarthanPortal : AgarthanBehaviour
     {
-        private struct VisiblePortalResource
-        {
-            public AgarthanPortal VisiblePortal;
-            public Texture OriginalTexture;
-
-            public VisiblePortalResource(AgarthanPortal visiblePortal, Texture originalTexture)
-            {
-                VisiblePortal = visiblePortal;
-                OriginalTexture = originalTexture;
-            }
-        }
-
         private Camera _mainCamera => Camera.main;
 
         public AgarthanPortal LinkedPortal;
@@ -32,10 +20,12 @@ namespace AgarthaLib.Goodies.Portals
         public Transform NormalInvisible;
         [EditorReadOnly] public List<AgarthanPortal> VisiblePortals = new();
 
+        public Vector3 InwardsForward => NormalVisible.forward;
+        public Vector3 OutwardsForward => NormalInvisible.forward;
+
         [Header("Collision")]
         public bool CanPassThrough = true;
-        public float VelocityThreshold = 1f;
-        public float VelocityModifier = 1.5f;
+        public float VelocityOverride = 1.5f;
         public List<Type> PassthroughTypes = new()
         {
             typeof(Rigidbody),
@@ -51,17 +41,17 @@ namespace AgarthaLib.Goodies.Portals
         public Renderer MeshRenderer;
         public Texture FallbackDepthTexture;
         public bool InfiniteDepth = true;
-        public int MaxDepth = 2;
-        public int Downscale = 2;
+        public int TrueDepth = 2;
+        public int MaxDepth = 4;
 
         [Header("Debug")]
         [NonSerialized] public Vector4 VectorPlane;
         [SerializeField, EditorReadOnly] private bool _isBeingRendered = false;
+        private readonly UniversalRenderPipeline.SingleCameraRequest _request = new();
+
         public bool IsBeingRendered => MeshRenderer.isVisible
                 && MeshRenderer.IsVisibleFrom(_mainCamera)
                 && PortalOcclusionVolume.IsInSameVolume(_mainCamera, this);
-
-        private readonly UniversalRenderPipeline.SingleCameraRequest _request = new();
 
         protected override void Start()
         {
@@ -104,71 +94,62 @@ namespace AgarthaLib.Goodies.Portals
                 return;
 
             var mc = _mainCamera.transform;
-            RecursiveRender(mc.position, mc.rotation, out _, Camera, 0);
+            RecursiveRender(mc.position, mc.rotation, Camera, 0);
         }
 
-        public void RecursiveRender(Vector3 refPos, Quaternion refRot,
-            out Texture originalTexture,
-            Camera cam, int depth)
+        public void RecursiveRender(Vector3 pos, Quaternion rot, Camera cam, int depth, RenderTexture propagate = null)
         {
-            var virtualPosition = TransformPosition(this, LinkedPortal, refPos);
-            var virtualRotation = TransformRotation(this, LinkedPortal, refRot);
-            cam.transform.SetPositionAndRotation(virtualPosition, virtualRotation);
+            propagate = propagate ? propagate : cam.targetTexture;
 
-            var clip = Matrix4x4.Transpose(Matrix4x4.Inverse(cam.worldToCameraMatrix)) * LinkedPortal.VectorPlane;
-            var obliqueProjectionMatrix = cam.CalculateObliqueMatrix(clip);
-            cam.projectionMatrix = obliqueProjectionMatrix;
+            var virtualPosition = TransformPosition(pos);
+            var virtualRotation = TransformRotation(rot);
 
-            var vprList = new List<VisiblePortalResource>();
-            if (depth < MaxDepth && LinkedPortal.VisiblePortals.Count > 0)
+            if (LinkedPortal.VisiblePortals.Count <= 0)
+            {
+                RenderPortalCamera(cam, virtualPosition, virtualRotation);
+                MeshRenderer.material.mainTexture = _renderTexture;
+                return;
+            }
+
+            // Recursion check
+            if (depth < TrueDepth)
             {
                 foreach (var visiblePortal in LinkedPortal.VisiblePortals)
                 {
                     if (!visiblePortal.MeshRenderer.IsVisibleFrom(cam))
                         continue;
 
-                    visiblePortal.RecursiveRender(
-                        virtualPosition, virtualRotation,
-                        out var visibleTexture,
-                        cam, depth + 1);
-
-                    vprList.Add(new(visiblePortal, visibleTexture));
+                    visiblePortal.RecursiveRender(virtualPosition, virtualRotation, cam, depth + 1, propagate);
                 }
+            }
+            else if (InfiniteDepth && depth < MaxDepth)
+            {
+                // todo infinite
+                return;
             }
             else
             {
-                foreach (var visiblePortal in LinkedPortal.VisiblePortals)
-                {
-                    var visibleTexture = MeshRenderer.material.mainTexture;
-                    MeshRenderer.material.mainTexture = FallbackDepthTexture;
-                    vprList.Add(new(visiblePortal, visibleTexture));
-                }
+                MeshRenderer.material.mainTexture = FallbackDepthTexture;
+                return;
             }
 
-            cam.targetTexture = _renderTexture;
-            cam.transform.SetPositionAndRotation(virtualPosition, virtualRotation);
-            cam.projectionMatrix = obliqueProjectionMatrix;
+            // Render everything after recursion
+            RenderPortalCamera(cam, virtualPosition, virtualRotation);
+            MeshRenderer.material.mainTexture = _renderTexture;
+        }
 
-            // Camera.Render().
+        public void RenderPortalCamera(Camera cam, Vector3 position, Quaternion rotation)
+        {
+            cam.transform.SetPositionAndRotation(position, rotation);
+
+            var clip = Matrix4x4.Transpose(Matrix4x4.Inverse(cam.worldToCameraMatrix)) * LinkedPortal.VectorPlane;
+            var obliqueProjectionMatrix = cam.CalculateObliqueMatrix(clip);
+            cam.projectionMatrix = obliqueProjectionMatrix;
+            cam.targetTexture = _renderTexture;
+
             if (UnityEngineExtensions.TryGetUsedPipeline(out _))
                 RenderPipeline.SubmitRenderRequest(cam, _request);
             else cam.Render();
-
-            foreach (var resource in vprList)
-            {
-                // Reset to original texture
-                // So that it will remain correct if the visible portal is still expecting to be rendered
-                // on another camera but has already rendered its texture.
-                // Originally the texture may be overriden by other renders.
-                resource.VisiblePortal.MeshRenderer.material.mainTexture = resource.OriginalTexture;
-            }
-
-            // Must be after camera render, in case it renders itself
-            // (in which the texture must not be replaced before rendering itself)
-            // Must be after restore, in case it restores its own old texture
-            // (in which the new texture must take precedence)
-            originalTexture = MeshRenderer.material.mainTexture;
-            MeshRenderer.material.mainTexture = _renderTexture;
         }
 
         protected override void LateFixedUpdate()
@@ -194,21 +175,10 @@ namespace AgarthaLib.Goodies.Portals
                 var dot = Vector3.Dot(direction, NormalVisible.forward);
                 if (dot > 0) continue;
 
-                var newPos = TransformPosition(this, LinkedPortal, item.position);
-                var newRot = TransformRotation(this, LinkedPortal, item.rotation);
+                var newPos = TransformPosition(item.position);
+                var newRot = TransformRotation(item.rotation);
                 item.SetPositionAndRotation(newPos, newRot);
-
-                if (item.HasComponent<CharacterController>())
-                    UnityEngine.Physics.SyncTransforms();
-                // CharacterController controls velocity in their own logic.
-
-                if (item.TryGetComponent<Rigidbody>(out var rb))
-                {
-                    item.rotation = Quaternion.LookRotation(item.forward, Vector3.up);
-                    rb.linearVelocity = TransformDirection(this, LinkedPortal, rb.linearVelocity);
-                    if (rb.linearVelocity.magnitude <= VelocityThreshold)
-                        rb.linearVelocity *= VelocityModifier;
-                }
+                Physics.SyncTransforms();
 
                 RaiseEvent<PortalTeleportedEvent>(item.gameObject, new(this, LinkedPortal, newPos, newRot));
 
@@ -269,7 +239,7 @@ namespace AgarthaLib.Goodies.Portals
             Predicate<Collider> overlapPred =
                 (q) => q.transform == transform || !q.isTrigger || !q.HasComponent<AgarthanPortal>();
 
-            if (!Extensions.Physics.OverlapHalfSphereUnoccluded(transform.position, NormalVisible.forward, 50f, out var hits, overlapPred))
+            if (!PortalAwarePhysics.OverlapHalfSphereUnoccluded(transform.position, NormalVisible.forward, 50f, out var hits, overlapPred))
                 return;
 
             var valid = hits.Where(q => q.HasComponent<AgarthanPortal>()).ToList();
@@ -282,13 +252,25 @@ namespace AgarthaLib.Goodies.Portals
         public static Vector3 TransformPosition(AgarthanPortal a, AgarthanPortal b, Vector3 position)
             => b.NormalInvisible.TransformPoint(a.NormalVisible.InverseTransformPoint(position));
 
+        public Vector3 TransformPosition(Vector3 position)
+            => TransformPosition(this, LinkedPortal, position);
+
         public static Vector3 TransformDirection(AgarthanPortal a, AgarthanPortal b, Vector3 direction)
             => b.NormalInvisible.TransformDirection(a.NormalVisible.InverseTransformDirection(direction));
 
+        public Vector3 TransformDirection(Vector3 direction)
+            => TransformDirection(this, LinkedPortal, direction);
+
+        public Quaternion GetRotationDelta(AgarthanPortal a, AgarthanPortal b)
+            => b.NormalInvisible.rotation * Quaternion.Inverse(a.NormalVisible.rotation);
+
         public Quaternion GetRotationDelta()
-            => LinkedPortal.NormalInvisible.rotation * Quaternion.Inverse(NormalVisible.rotation);
+            => GetRotationDelta(this, LinkedPortal);
 
         public static Quaternion TransformRotation(AgarthanPortal a, AgarthanPortal b, Quaternion rotation)
             => b.NormalInvisible.rotation * Quaternion.Inverse(a.NormalVisible.rotation) * rotation;
+
+        public Quaternion TransformRotation(Quaternion rotation)
+            => TransformRotation(this, LinkedPortal, rotation);
     }
 }

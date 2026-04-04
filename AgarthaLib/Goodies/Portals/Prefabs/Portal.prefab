@@ -42,7 +42,7 @@ Camera:
   m_GameObject: {fileID: 532684681423822958}
   m_Enabled: 0
   serializedVersion: 2
-  m_ClearFlags: 2
+  m_ClearFlags: 1
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
@@ -245,16 +245,17 @@ MonoBehaviour:
   NormalVisible: {fileID: 795673147809146218}
   NormalInvisible: {fileID: 5793136629317657601}
   VisiblePortals: []
-  PortalFunctionality: 1
+  CanPassThrough: 1
+  VelocityOverride: 0
   _collidingObjects: []
   _objectRemovalQueue: []
+  Camera: {fileID: 991110844190945161}
+  _renderTexture: {fileID: 0}
   MeshRenderer: {fileID: 480999509526661816}
   FallbackDepthTexture: {fileID: 10309, guid: 0000000000000000f000000000000000, type: 0}
-  MaxDepthOverride: 2
-  VectorPlane: {x: 0, y: 0, z: 0, w: 0}
-  UseLegacyRendering: 0
-  Camera: {fileID: 991110844190945161}
-  _rt: {fileID: 0}
+  InfiniteDepth: 1
+  MaxDepth: 8
+  _isBeingRendered: 0
 --- !u!33 &5577813692949354594
 MeshFilter:
   m_ObjectHideFlags: 0

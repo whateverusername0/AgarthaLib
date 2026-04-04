@@ -9,7 +9,7 @@ namespace AgarthaLib.Sprites.Layers
     {
         public SpriteLayerMap LayerMap = new();
 
-        [ScriptableObjectIcon, EditorReadOnly, SerializeField]
+        [ScriptableObjectIcon, SerializeField]
         private Sprite _icon => LayerMap.Map.Count > 0 ? LayerMap.Map.First() : null;
     }
 }

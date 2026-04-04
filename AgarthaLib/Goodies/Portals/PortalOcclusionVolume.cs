@@ -25,9 +25,13 @@ namespace AgarthaLib.Goodies.Portals
                 .FirstOrDefault();
 
         public static bool IsInSameVolume(Camera cam, AgarthanPortal portal)
-            => FindObjectsByType<PortalOcclusionVolume>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
-                .Where(q => q.Collider.bounds.Contains(cam.transform.position)
-                    && q.OccludedPortals.Contains(portal)).FirstOrDefault() != null;
+        {
+            var vol = FindObjectsByType<PortalOcclusionVolume>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            if (vol.Length == 0) return true; // fallback option
+
+            return vol.Where(q => q.Collider.bounds.Contains(cam.transform.position) 
+                && q.OccludedPortals.Contains(portal)).FirstOrDefault() != null;
+        }
 
         [ContextMenu("Resolve visible portals")] public void ResolvePortals()
         {
