@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 namespace AgarthaLib.Goodies.Portals
 {
@@ -47,7 +45,6 @@ namespace AgarthaLib.Goodies.Portals
         [Header("Debug")]
         [NonSerialized] public Vector4 VectorPlane;
         [SerializeField, EditorReadOnly] private bool _isBeingRendered = false;
-        private readonly UniversalRenderPipeline.SingleCameraRequest _request = new();
 
         public bool IsBeingRendered => MeshRenderer.isVisible
                 && MeshRenderer.IsVisibleFrom(_mainCamera)
@@ -147,9 +144,7 @@ namespace AgarthaLib.Goodies.Portals
             cam.projectionMatrix = obliqueProjectionMatrix;
             cam.targetTexture = _renderTexture;
 
-            if (UnityEngineExtensions.TryGetUsedPipeline(out _))
-                RenderPipeline.SubmitRenderRequest(cam, _request);
-            else cam.Render();
+            cam.Render();
         }
 
         protected override void LateFixedUpdate()
@@ -171,9 +166,8 @@ namespace AgarthaLib.Goodies.Portals
                 // If the dot product is more than 0
                 // that means that the portal-to-object direction
                 // and the visible normal direction is on the same side
-                var direction = (item.position - transform.position).normalized;
-                var dot = Vector3.Dot(direction, NormalVisible.forward);
-                if (dot > 0) continue;
+                if (GetDotProduct(item.position) > 0)
+                    continue;
 
                 var newPos = TransformPosition(item.position);
                 var newRot = TransformRotation(item.rotation);
@@ -221,6 +215,10 @@ namespace AgarthaLib.Goodies.Portals
             var compRegistry = other.GetComponents<Component>();
             // check if it has any valid components for it to pass through.
             if (compRegistry.Where(q => PassthroughTypes.Any(w => q.GetType() == w)).Count() == 0)
+                return;
+
+            // entering the portal from behind - don't teleport, let the entity pass
+            if (GetDotProduct(other.position) < 0.1f)
                 return;
 
             if (!_collidingObjects.Contains(other))
@@ -272,5 +270,12 @@ namespace AgarthaLib.Goodies.Portals
 
         public Quaternion TransformRotation(Quaternion rotation)
             => TransformRotation(this, LinkedPortal, rotation);
+
+        public float GetDotProduct(Vector3 position)
+        {
+            var direction = (position - transform.position).normalized;
+            var dot = Vector3.Dot(direction, NormalVisible.forward);
+            return dot;
+        }
     }
 }
