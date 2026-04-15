@@ -56,15 +56,23 @@ namespace AgarthaLib.Goodies.Portals
 
             ResolveDependencies();
 
+            SubscribeGlobalEvent<ResolutionChangedEvent>(OnResolutionChanged);
+
             SubscribeEvent<CollisionEnterEvent>(OnCollisionEnterEvent);
             SubscribeEvent<CollisionExitEvent>(OnCollisionExitEvent);
         }
 
-        private void ResolveDependencies()
+        private void OnResolutionChanged(ref ResolutionChangedEvent args)
         {
-            if (_renderTexture == null)
+            // change rt's resolution
+            ResolveDependencies(forced: true);
+        }
+
+        private void ResolveDependencies(bool forced = false)
+        {
+            if (_renderTexture == null || forced)
             {
-                _renderTexture = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32);
+                _renderTexture = new(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32);
                 _renderTexture.name = this.name;
                 _renderTexture.Create();
             }
@@ -218,8 +226,8 @@ namespace AgarthaLib.Goodies.Portals
                 return;
 
             // entering the portal from behind - don't teleport, let the entity pass
-            if (GetDotProduct(other.position) < 0.1f)
-                return;
+            //if (GetDotProduct(other.position) < 0.5f)
+            //    return;
 
             if (!_collidingObjects.Contains(other))
                 _collidingObjects.Add(other);

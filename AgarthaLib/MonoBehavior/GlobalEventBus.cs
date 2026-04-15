@@ -7,7 +7,7 @@ namespace AgarthaLib.MonoBehavior
     {
         private readonly EventBus _bus = new();
 
-        public void RaiseEvent<TArgs>(TArgs args) where TArgs : class
+        public override void RaiseEvent<TArgs>(TArgs args) where TArgs : class
             => _bus.RaiseEvent(args);
 
         public void RaiseEvent<TArgs>(ref TArgs args) where TArgs : class

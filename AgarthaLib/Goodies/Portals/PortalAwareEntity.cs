@@ -15,7 +15,8 @@ namespace AgarthaLib.Goodies.Portals
         public Transform Pivot;
 
         [Header("Rotation")]
-        public bool AutoResetRotation = false;
+        public bool RotateAutomatically = true;
+        public float RotationSpeed = 2f;
         [EditorReadOnly] public Quaternion TargetRotation = Quaternion.identity;
 
         protected override void Start()
@@ -25,12 +26,29 @@ namespace AgarthaLib.Goodies.Portals
             SubscribeEvent<PortalTeleportedEvent>(OnPortalTeleported);
         }
 
+        protected override void Update()
+        {
+            base.Update();
+
+            if (RotateAutomatically)
+            {
+                var t = Pivot ? Pivot : transform;
+                TargetRotation = Quaternion.Lerp(TargetRotation, GetWorldDirection(), Time.deltaTime * RotationSpeed);
+                var tangles = TargetRotation.eulerAngles;
+                t.eulerAngles = new(tangles.x, t.eulerAngles.y, tangles.z);
+            }
+        }
+
+        // TODO gravity
+        public Quaternion GetWorldDirection()
+            => Quaternion.LookRotation(Vector3.forward, Vector3.up);
+
         private void OnPortalTeleported(GameObject invoker, ref PortalTeleportedEvent args)
         {
-            var transform = Pivot ? Pivot : this.transform;
+            var t = Pivot ? Pivot : transform;
 
             // look up again.
-            TargetRotation = Quaternion.LookRotation(transform.forward, Vector3.up);
+            TargetRotation = Quaternion.LookRotation(t.forward, Vector3.up);
 
             if (RB)
             {

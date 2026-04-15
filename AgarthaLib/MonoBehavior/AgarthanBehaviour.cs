@@ -26,27 +26,31 @@ namespace AgarthaLib.MonoBehavior
             => _bus.GetSubscriptions();
 
         /// <inheritdoc/>
-        public void RaiseEvent<TArgs>(GameObject target, TArgs args) where TArgs : class
+        public virtual void RaiseEvent<TArgs>(TArgs args) where TArgs : class
+            => RaiseEvent(gameObject, gameObject, args);
+
+        /// <inheritdoc/>
+        public virtual void RaiseEvent<TArgs>(GameObject target, TArgs args) where TArgs : class
             => RaiseEvent(gameObject, target, args);
 
         /// <inheritdoc/>
-        public void RaiseEvent<TArgs>(GameObject invoker, GameObject target, TArgs args) where TArgs : class
+        public virtual void RaiseEvent<TArgs>(GameObject invoker, GameObject target, TArgs args) where TArgs : class
             => _bus.RaiseEvent(invoker, target, args);
 
         /// <inheritdoc/>
-        public void RaiseEvent<TArgs>(GameObject target, ref TArgs args) where TArgs : class
+        public virtual void RaiseEvent<TArgs>(GameObject target, ref TArgs args) where TArgs : class
             => RaiseEvent(gameObject, target, ref args);
 
         /// <inheritdoc/>
-        public void RaiseEvent<TArgs>(GameObject invoker, GameObject target, ref TArgs args) where TArgs : class
+        public virtual void RaiseEvent<TArgs>(GameObject invoker, GameObject target, ref TArgs args) where TArgs : class
             => _bus.RaiseEvent(invoker, target, ref args);
 
         /// <inheritdoc/>
-        public void SubscribeEvent<TArgs>(LocalEventHandlerDelegate<TArgs> handler) where TArgs : class
+        public virtual void SubscribeEvent<TArgs>(LocalEventHandlerDelegate<TArgs> handler) where TArgs : class
             => _bus.SubscribeEvent(handler);
 
         /// <inheritdoc/>
-        public void UnsubscribeEvent<TArgs>(LocalEventHandlerDelegate<TArgs> handler) where TArgs : class
+        public virtual void UnsubscribeEvent<TArgs>(LocalEventHandlerDelegate<TArgs> handler) where TArgs : class
             => _bus.UnsubscribeEvent(handler);
 
         #endregion
@@ -55,16 +59,16 @@ namespace AgarthaLib.MonoBehavior
 
         private GlobalEventBus _globalBus => GlobalEventBus.Instance;
 
-        public void RaiseGlobalEvent<TArgs>(TArgs args) where TArgs : class
+        public virtual void RaiseGlobalEvent<TArgs>(TArgs args) where TArgs : class
             => _globalBus.RaiseEvent(args);
 
-        public void RaiseGlobalEvent<TArgs>(ref TArgs args) where TArgs : class
+        public virtual void RaiseGlobalEvent<TArgs>(ref TArgs args) where TArgs : class
             => _globalBus.RaiseEvent(ref args);
 
-        public void SubscribeGlobalEvent<TArgs>(EventHandlerDelegate<TArgs> handler) where TArgs : class
+        public virtual void SubscribeGlobalEvent<TArgs>(EventHandlerDelegate<TArgs> handler) where TArgs : class
             => _globalBus.SubscribeEvent(handler);
 
-        public void UnsubscribeGlobalEvent<TArgs>(EventHandlerDelegate<TArgs> handler) where TArgs : class
+        public virtual void UnsubscribeGlobalEvent<TArgs>(EventHandlerDelegate<TArgs> handler) where TArgs : class
             => _globalBus.UnsubscribeEvent(handler);
 
         #endregion
@@ -77,7 +81,7 @@ namespace AgarthaLib.MonoBehavior
         /// </summary>
         /// <param name="targets">Targets to relay the event to.</param>
         /// <param name="args">The event.</param>
-        public void RelayEvent<TArgs>(List<GameObject> targets, ref TArgs args) where TArgs : class
+        public virtual void RelayEvent<TArgs>(List<GameObject> targets, ref TArgs args) where TArgs : class
         {
             var relay = new RelayedEvent<TArgs>(gameObject, args);
             foreach (var target in targets)
@@ -86,7 +90,7 @@ namespace AgarthaLib.MonoBehavior
         }
 
         // todo change to include the entire hierarchy
-        public void RaiseRelayEvent<TArgs>(ref TArgs args) where TArgs : class
+        public virtual void RaiseRelayEvent<TArgs>(ref TArgs args) where TArgs : class
         {
             RaiseEvent(gameObject, ref args);
 
@@ -100,7 +104,7 @@ namespace AgarthaLib.MonoBehavior
 
         private readonly List<TimerInstance> _timers = new();
 
-        protected void RegisterTimer(float delay, Action a, bool overwrite = false)
+        protected virtual void RegisterTimer(float delay, Action a, bool overwrite = false)
         {
             var existing = GetTimer(a);
             if (existing != null)
@@ -112,16 +116,16 @@ namespace AgarthaLib.MonoBehavior
             _timers.Add(new(delay, a));
         }
 
-        protected void UnregisterTimer(TimerInstance inst)
+        protected virtual void UnregisterTimer(TimerInstance inst)
             => _timers.Remove(inst);
 
-        protected void UnregisterTimer(Action a)
+        protected virtual void UnregisterTimer(Action a)
         {
             var existing = GetTimer(a);
             if (existing != null) UnregisterTimer(existing);
         }
 
-        protected TimerInstance GetTimer(Action a)
+        protected virtual TimerInstance GetTimer(Action a)
         {
             var existing = _timers.Where(q => q.Action == a).FirstOrDefault();
             if (existing != null) return existing;
