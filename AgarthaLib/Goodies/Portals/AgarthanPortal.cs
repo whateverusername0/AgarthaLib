@@ -1,5 +1,6 @@
 ﻿using AgarthaLib.Attributes;
 using AgarthaLib.Collision;
+using AgarthaLib.EventSystem.StaticDispatchers;
 using AgarthaLib.Extensions;
 using AgarthaLib.MonoBehavior;
 using System;
@@ -72,6 +73,12 @@ namespace AgarthaLib.Goodies.Portals
         {
             if (_renderTexture == null || forced)
             {
+                if (_renderTexture != null)
+                {
+                    _renderTexture.Release();
+                    _renderTexture.DiscardContents();
+                }
+
                 _renderTexture = new(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32);
                 _renderTexture.name = this.name;
                 _renderTexture.Create();
@@ -213,7 +220,7 @@ namespace AgarthaLib.Goodies.Portals
             if (VisiblePortals.Count == 0)
                 return;
 
-            foreach (var visible in VisiblePortals)
+            foreach (var visible in VisiblePortals.Where(q => q != null))
                 Gizmos.DrawLine(transform.position, visible.transform.position);
         }
 
