@@ -1,21 +1,22 @@
 ﻿using AgarthaLib.MonoBehavior;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace AgarthaLib.Collision
 {
     public class CollisionEventTrigger : AgarthanBehaviour
     {
         private void OnCollisionEnter(UnityEngine.Collision other)
-            => BeginCollide(other.collider);
+            => CollisionEnter(other.collider);
 
         private void OnCollisionEnter2D(Collision2D other)
-            => BeginCollide2D(other.collider);
+            => CollisionEnter2D(other.collider);
 
         private void OnTriggerEnter(Collider other)
-            => BeginCollide(other);
+            => CollisionEnter(other);
 
         private void OnTriggerEnter2D(Collider2D other)
-            => BeginCollide2D(other);
+            => CollisionEnter2D(other);
 
         private void OnCollisionStay(UnityEngine.Collision other)
             => CollisionStay(other.collider);
@@ -23,7 +24,7 @@ namespace AgarthaLib.Collision
         private void OnCollisionStay2D(Collision2D other)
             => CollisionStay2D(other.collider);
 
-        private void OnTriggerStay(UnityEngine.Collider other)
+        private void OnTriggerStay(Collider other)
             => CollisionStay(other);
 
         private void OnTriggerStay2D(Collider2D other)
@@ -35,19 +36,17 @@ namespace AgarthaLib.Collision
         private void OnCollisionExit2D(Collision2D other)
             => CollisionExit2D(other.collider);
 
-        private void OnTriggerExit(UnityEngine.Collider other)
+        private void OnTriggerExit(Collider other)
             => CollisionExit(other);
 
         private void OnTriggerExit2D(Collider2D other)
             => CollisionExit2D(other);
 
+        [SerializeField] private UnityEvent _collisionEnter;
+        [SerializeField] private UnityEvent _collisionStay;
+        [SerializeField] private UnityEvent _collisionExit;
 
-        /// <summary>
-        ///     Raises an <see cref="BeforeCollisionEnterEvent"/> on itself before colliding.
-        ///     Then raises <see cref="CollisionEnterEvent"> and <see cref="AfterCollisionEnterEvent">.
-        /// </summary>
-        /// <param name="other">The other collision.</param>
-        protected void BeginCollide(Collider other)
+        protected void CollisionEnter(Collider other)
         {
             var before = new BeforeCollisionEnterEvent(other);
             RaiseEvent(gameObject, ref before);
@@ -55,15 +54,12 @@ namespace AgarthaLib.Collision
                 return;
 
             RaiseEvent(gameObject, new CollisionEnterEvent(other));
+            _collisionEnter?.Invoke();
+
             RaiseEvent(gameObject, new AfterCollisionEnterEvent(other));
         }
 
-        /// <summary>
-        ///    Raises an <see cref="BeforeCollision2DEnterEvent"/> on itself before colliding.
-        ///    Then raises <see cref="Collision2DEnterEvent"> and <see cref="AfterCollision2DEnterEvent">.
-        /// </summary>
-        /// <param name="other"></param>
-        protected void BeginCollide2D(Collider2D other)
+        protected void CollisionEnter2D(Collider2D other)
         {
             var before = new BeforeCollision2DEnterEvent(other);
             RaiseEvent(gameObject, ref before);
@@ -71,27 +67,44 @@ namespace AgarthaLib.Collision
                 return;
 
             RaiseEvent(gameObject, new Collision2DEnterEvent(other));
+            _collisionEnter?.Invoke();
             RaiseEvent(gameObject, new AfterCollision2DEnterEvent(other));
         }
 
         protected void CollisionStay(Collider other)
         {
             RaiseEvent(gameObject, new CollisionStayEvent(other));
+            _collisionStay?.Invoke();
         }
 
         protected void CollisionStay2D(Collider2D other)
         {
             RaiseEvent(gameObject, new Collision2DStayEvent(other));
+            _collisionStay?.Invoke();
         }
 
         protected void CollisionExit(Collider other)
         {
+            var before = new BeforeCollisionExitEvent(other);
+            RaiseEvent(gameObject, ref before);
+            if (before.Cancelled)
+                return;
+
             RaiseEvent(gameObject, new CollisionExitEvent(other));
+            _collisionExit?.Invoke();
+            RaiseEvent(gameObject, new AfterCollisionExitEvent(other));
         }
 
         protected void CollisionExit2D(Collider2D other)
         {
+            var before = new BeforeCollision2DExitEvent(other);
+            RaiseEvent(gameObject, ref before);
+            if (before.Cancelled)
+                return;
+
             RaiseEvent(gameObject, new Collision2DExitEvent(other));
+            _collisionExit?.Invoke();
+            RaiseEvent(gameObject, new AfterCollision2DExitEvent(other));
         }
     }
 }

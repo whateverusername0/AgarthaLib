@@ -81,6 +81,16 @@ namespace AgarthaLib.Collision
         public Collision2DStayEvent(Collider2D other) : base(other) { }
     }
 
+    public class BeforeCollisionExitEvent : CancellableCollisionEventBase
+    {
+        public BeforeCollisionExitEvent(Collider other) : base(other) { }
+    }
+
+    public class BeforeCollision2DExitEvent : CancellableCollision2DEventBase
+    {
+        public BeforeCollision2DExitEvent(Collider2D other) : base(other) { }
+    }
+
     public class CollisionExitEvent : CollisionEventBase
     {
         public CollisionExitEvent(Collider other) : base(other) { }
@@ -89,6 +99,16 @@ namespace AgarthaLib.Collision
     public class Collision2DExitEvent : Collision2DEventBase
     {
         public Collision2DExitEvent(Collider2D other) : base(other) { }
+    }
+
+    public class AfterCollisionExitEvent : CollisionEventBase
+    {
+        public AfterCollisionExitEvent(Collider other) : base(other) { }
+    }
+
+    public class AfterCollision2DExitEvent : Collision2DEventBase
+    {
+        public AfterCollision2DExitEvent(Collider2D other) : base(other) { }
     }
 
     #endregion
