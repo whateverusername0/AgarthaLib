@@ -5,7 +5,7 @@ using UnityEngine;
 namespace AgarthaLib.Cameras
 {
     [RequireComponent(typeof(Camera))]
-    public class RestrictedCamera : AgarthanBehaviour
+    public class FPSRestrictedCamera : AgarthanBehaviour
     {
         [SerializeField, ValidateNull] private Camera Camera;
 

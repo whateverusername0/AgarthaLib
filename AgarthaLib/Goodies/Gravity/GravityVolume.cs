@@ -1,6 +1,6 @@
 ﻿using AgarthaLib.MonoBehavior;
 
-namespace AgarthaLib.Gravity
+namespace AgarthaLib.Goodies.Gravity
 {
     public class GravityVolume : AgarthanBehaviour
     {
