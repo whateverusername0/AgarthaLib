@@ -134,6 +134,20 @@ namespace AgarthaLib.MonoBehavior
 
         #endregion
 
+        #region Coroutines
+
+        // TODO
+        //private List<IEnumerator> _enumeratorQueue = new();
+        //private List<Coroutine> _coroutines = new();
+
+        //public void QueueCoroutine(IEnumerator routine)
+        //{
+        //    _enumeratorQueue.Add(routine);
+
+        //}
+
+        #endregion
+
         protected virtual void Start()
         {
             ValidateNull();
@@ -145,6 +159,7 @@ namespace AgarthaLib.MonoBehavior
         protected virtual void Update()
         {
             UpdateTimers();
+            UpdateCoroutines();
         }
 
         private IEnumerator LateFixedUpdateEnumerator()
@@ -194,6 +209,11 @@ namespace AgarthaLib.MonoBehavior
                     timer.Action.Invoke();
                 }
             }
+        }
+
+        private void UpdateCoroutines()
+        {
+            // TODO
         }
 
         #endregion
