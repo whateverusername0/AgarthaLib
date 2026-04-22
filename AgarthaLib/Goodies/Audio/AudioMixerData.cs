@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Audio;
 
-namespace AgarthaLib.Audio
+namespace AgarthaLib.Goodies.Audio
 {
     [CreateAssetMenu(menuName = "AgarthaLib / Audio / Audio Mixer Data")]
     public class AudioMixerData : ScriptableObject

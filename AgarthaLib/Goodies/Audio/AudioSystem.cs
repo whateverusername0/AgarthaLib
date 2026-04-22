@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace AgarthaLib.Audio
+namespace AgarthaLib.Goodies.Audio
 {
     public class AudioSystem : AgarthanSingleton<AudioSystem>
     {

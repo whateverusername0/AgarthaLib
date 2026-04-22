@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AgarthaLib.Audio
+namespace AgarthaLib.Goodies.Audio
 {
     [CreateAssetMenu(menuName = "AgarthaLib / Audio / Audio clip composite")]
     public class CompositeAudioClip : ScriptableObject

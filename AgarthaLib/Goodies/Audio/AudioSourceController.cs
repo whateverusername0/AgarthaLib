@@ -2,7 +2,7 @@
 using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
-namespace AgarthaLib.Audio
+namespace AgarthaLib.Goodies.Audio
 {
     public class AudioSourceController : AgarthanBehaviour
     {
