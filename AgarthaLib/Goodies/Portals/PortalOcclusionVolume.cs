@@ -1,7 +1,8 @@
 ﻿using AgarthaLib.Attributes;
+using AgarthaLib.Collision;
+using AgarthaLib.EventSystem;
 using AgarthaLib.MonoBehavior;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace AgarthaLib.Goodies.Portals
@@ -17,21 +18,26 @@ namespace AgarthaLib.Goodies.Portals
 
             if (OccludedPortals.Count == 0)
                 ResolvePortals();
+
+            RenderPortals(false);
+
+            SubscribeEvent<CollisionEnterEvent>(RenderPortals);
+            SubscribeEvent<RelayedEvent<CollisionEnterEvent>>(RenderPortals);
+            SubscribeEvent<CollisionStayEvent>(RenderPortals);
+            SubscribeEvent<RelayedEvent<CollisionStayEvent>>(RenderPortals);
+
+            SubscribeEvent<CollisionExitEvent>(StopRenderingPortals);
+            SubscribeEvent<RelayedEvent<CollisionExitEvent>>(StopRenderingPortals);
         }
 
-        public static PortalOcclusionVolume GetCurrentVolume(Camera cam)
-            => FindObjectsByType<PortalOcclusionVolume>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
-                .Where(q => q.Collider.bounds.Contains(cam.transform.position))
-                .FirstOrDefault();
+        public void RenderPortals<T>(GameObject invoker, ref T args)
+            => RenderPortals(true);
 
-        public static bool IsInSameVolume(Camera cam, AgarthanPortal portal)
-        {
-            var vol = FindObjectsByType<PortalOcclusionVolume>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-            if (vol.Length == 0) return true; // fallback option
+        public void StopRenderingPortals<T>(GameObject invoker, ref T args)
+            => RenderPortals(false);
 
-            return vol.Where(q => q.Collider.bounds.Contains(cam.transform.position) 
-                && q.OccludedPortals.Contains(portal)).FirstOrDefault() != null;
-        }
+        public void RenderPortals(bool render)
+            => OccludedPortals.ForEach(q => q.EnableRendering = render);
 
         [ContextMenu("Resolve visible portals")] public void ResolvePortals()
         {

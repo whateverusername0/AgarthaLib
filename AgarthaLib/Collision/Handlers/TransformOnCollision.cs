@@ -1,26 +1,16 @@
 ﻿using AgarthaLib.Attributes;
+using AgarthaLib.EventSystem;
+using AgarthaLib.Extensions;
 using AgarthaLib.MonoBehavior;
-using System;
-using System.Collections;
 using UnityEngine;
 
 namespace AgarthaLib.Collision.Handlers
 {
     public class TransformOnCollision : AgarthanBehaviour
     {
-        [Serializable] public enum TransformType
-        {
-            Delta, Absolute
-        }
-
-        [Serializable] public enum TransformFlags
-        {
-            Position, Rotation, All
-        }
-
         [Header("Properties")]
-        [SerializeField] private GameObject _target;
-        public GameObject Target => _target != null ? _target : this.gameObject;
+        [SerializeField] private Transform _target;
+        public Transform Target => _target != null ? _target : this.transform;
 
         [SerializeField] private TransformFlags Flag = TransformFlags.All;
         [SerializeField] private TransformType Type = TransformType.Delta;
@@ -43,13 +33,17 @@ namespace AgarthaLib.Collision.Handlers
         {
             base.Start();
 
-            _lastPosition = Target.transform.localPosition;
-            _lastRotation = Target.transform.localRotation;
+            _lastPosition = Target.localPosition;
+            _lastRotation = Target.localRotation;
 
             SubscribeEvent<CollisionEnterEvent>(OnCollisionEnterEvent);
             SubscribeEvent<Collision2DEnterEvent>(OnCollision2DEnterEvent);
             SubscribeEvent<CollisionExitEvent>(OnCollisionExitEvent);
             SubscribeEvent<Collision2DExitEvent>(OnCollision2DExitEvent);
+            SubscribeEvent<RelayedEvent<CollisionEnterEvent>>(OnRelayedCollisionEnterEvent);
+            SubscribeEvent<RelayedEvent<Collision2DEnterEvent>>(OnRelayedCollision2DEnterEvent);
+            SubscribeEvent<RelayedEvent<CollisionExitEvent>>(OnRelayedCollisionExitEvent);
+            SubscribeEvent<RelayedEvent<Collision2DExitEvent>>(OnRelayedCollision2DExitEvent);
         }
 
         private void OnDrawGizmosSelected()
@@ -57,29 +51,47 @@ namespace AgarthaLib.Collision.Handlers
             if (Target == null) return;
 
             Gizmos.color = Color.red;
-            var t = Target.transform;
+            var t = Target;
             Gizmos.DrawRay(t.position, Position);
             if (Rotation.eulerAngles.magnitude > 0)
                 Gizmos.DrawRay(t.position + t.forward, Rotation * t.forward);
         }
 
         private void OnCollisionEnterEvent(GameObject invoker, ref CollisionEnterEvent args)
-        {
-            if (_triggered) return;
-            _triggered = true;
-
-            Transform(Target, Position, Rotation, Duration, Ease, Type);
-        }
+            => CollisionEnter();
 
         private void OnCollision2DEnterEvent(GameObject invoker, ref Collision2DEnterEvent args)
+            => CollisionEnter();
+
+        private void OnCollisionExitEvent(GameObject invoker, ref CollisionExitEvent args)
+            => CollisionExit();
+
+        private void OnCollision2DExitEvent(GameObject invoker, ref Collision2DExitEvent args)
+            => CollisionExit();
+
+        private void OnRelayedCollisionEnterEvent(GameObject invoker, ref RelayedEvent<CollisionEnterEvent> args)
+            => CollisionEnter();
+
+        private void OnRelayedCollision2DEnterEvent(GameObject invoker, ref RelayedEvent<Collision2DEnterEvent> args)
+            => CollisionEnter();
+
+        private void OnRelayedCollisionExitEvent(GameObject invoker, ref RelayedEvent<CollisionExitEvent> args)
+            => CollisionExit();
+
+        private void OnRelayedCollision2DExitEvent(GameObject invoker, ref RelayedEvent<Collision2DExitEvent> args)
+            => CollisionExit();
+
+        private void CollisionEnter()
         {
             if (_triggered) return;
             _triggered = true;
 
-            Transform(Target, Position, Rotation, Duration, Ease, Type);
+            var pos = Type == TransformType.Delta ? _lastPosition + Position : Position;
+            var rot = Type == TransformType.Delta ? _lastRotation * Rotation : Rotation;
+            Transform(Target, pos, rot, Duration, Ease, TransformType.Absolute);
         }
 
-        private void OnCollisionExitEvent(GameObject invoker, ref CollisionExitEvent args)
+        private void CollisionExit()
         {
             if (!_triggered || !RevertTrigger) return;
             _triggered = false;
@@ -87,88 +99,13 @@ namespace AgarthaLib.Collision.Handlers
             Transform(Target, _lastPosition, _lastRotation, Duration, Ease, TransformType.Absolute);
         }
 
-        private void OnCollision2DExitEvent(GameObject invoker, ref Collision2DExitEvent args)
-        {
-            if (!_triggered || !RevertTrigger) return;
-            _triggered = false;
-
-            Transform(Target, _lastPosition, _lastRotation, Duration, Ease, TransformType.Absolute);
-        }
-
-        public void Transform(GameObject go, Vector3 pdelta, Quaternion rdelta,
-            float duration, bool ease, TransformType type)
+        public void Transform(Transform t, Vector3 pdelta, Quaternion rdelta, float duration, bool ease, TransformType type)
         {
             if (Flag == TransformFlags.Position || Flag == TransformFlags.All)
-                Move(go, pdelta, duration, ease, type);
+                t.SmoothMove(pdelta, duration, ease, type);
 
             if (Flag == TransformFlags.Rotation || Flag == TransformFlags.All)
-                Rotate(go, rdelta, duration, ease, type);
-        }
-
-        public void Move(GameObject go, Vector3 delta, float duration, bool ease, TransformType type)
-            => StartCoroutine(IEMove(go, delta, duration, ease, type));
-
-        private IEnumerator IEMove(GameObject go, Vector3 delta,
-            float duration, bool ease, TransformType type)
-        {
-            if (go == null) yield break;
-
-            var start = go.transform.localPosition;
-            var end = type == TransformType.Delta ? start + delta : delta;
-
-            if (duration <= 0f)
-            {
-                go.transform.localPosition = end;
-                yield break;
-            }
-
-            var elapsed = 0f;
-            var wfe = new WaitForEndOfFrame();
-            while (elapsed < duration)
-            {
-                yield return wfe;
-                elapsed += Time.deltaTime;
-                var t = Mathf.Clamp01(elapsed / duration);
-                var p = ease ? Mathf.SmoothStep(0f, 1f, t) : t;
-                go.transform.localPosition = Vector3.Lerp(start, end, p);
-            }
-
-            // ensure exact final position
-            go.transform.localPosition = end;
-            yield break;
-        }
-
-        public void Rotate(GameObject go, Quaternion delta, float duration, bool ease, TransformType type)
-            => StartCoroutine(IERotate(go, delta, duration, ease, type));
-
-        private IEnumerator IERotate(GameObject go, Quaternion delta,
-            float duration, bool ease, TransformType type)
-        {
-            if (go == null) yield break;
-
-            var start = go.transform.localRotation;
-            var end = type == TransformType.Delta ? start * delta : delta;
-
-            if (duration <= 0f)
-            {
-                go.transform.localRotation = end;
-                yield break;
-            }
-
-            var elapsed = 0f;
-            var wfe = new WaitForEndOfFrame();
-            while (elapsed < duration)
-            {
-                yield return wfe;
-                elapsed += Time.deltaTime;
-                var t = Mathf.Clamp01(elapsed / duration);
-                var p = ease ? Mathf.SmoothStep(0f, 1f, t) : t;
-                go.transform.localRotation = Quaternion.Slerp(start, end, p);
-            }
-
-            // ensure exact final rotation
-            go.transform.localRotation = end;
-            yield break;
+                t.SmoothRotate(rdelta, duration, ease, type);
         }
     }
 }

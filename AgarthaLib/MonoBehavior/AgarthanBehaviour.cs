@@ -75,18 +75,17 @@ namespace AgarthaLib.MonoBehavior
 
         #region Event Relays
 
-        /// <summary>
-        ///     Relays the event to specific targets.
-        ///     Then replaces the original event results with itself.
-        /// </summary>
-        /// <param name="targets">Targets to relay the event to.</param>
-        /// <param name="args">The event.</param>
-        public virtual void RelayEvent<TArgs>(List<GameObject> targets, ref TArgs args) where TArgs : class
+        public virtual void RelayEvent<TArgs>(GameObject target, ref TArgs args) where TArgs : class
         {
             var relay = new RelayedEvent<TArgs>(gameObject, args);
-            foreach (var target in targets)
-                RaiseEvent(target, ref relay);
+            RaiseEvent(target, ref relay);
             args = relay.Args;
+        }
+
+        public virtual void RelayEvent<TArgs>(List<GameObject> targets, ref TArgs args) where TArgs : class
+        {
+            foreach (var target in targets)
+                RelayEvent(target, ref args);
         }
 
         // todo change to include the entire hierarchy
@@ -134,20 +133,6 @@ namespace AgarthaLib.MonoBehavior
 
         #endregion
 
-        #region Coroutines
-
-        // TODO
-        //private List<IEnumerator> _enumeratorQueue = new();
-        //private List<Coroutine> _coroutines = new();
-
-        //public void QueueCoroutine(IEnumerator routine)
-        //{
-        //    _enumeratorQueue.Add(routine);
-
-        //}
-
-        #endregion
-
         protected virtual void Start()
         {
             ValidateNull();
@@ -159,7 +144,6 @@ namespace AgarthaLib.MonoBehavior
         protected virtual void Update()
         {
             UpdateTimers();
-            UpdateCoroutines();
         }
 
         private IEnumerator LateFixedUpdateEnumerator()
@@ -209,11 +193,6 @@ namespace AgarthaLib.MonoBehavior
                     timer.Action.Invoke();
                 }
             }
-        }
-
-        private void UpdateCoroutines()
-        {
-            // TODO
         }
 
         #endregion

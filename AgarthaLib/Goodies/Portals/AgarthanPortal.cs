@@ -35,6 +35,7 @@ namespace AgarthaLib.Goodies.Portals
         [SerializeField, EditorReadOnly] private List<Transform> _objectRemovalQueue = new();
 
         [Header("Rendering")]
+        public bool EnableRendering = true;
         [ValidateNull(traverse: true)] public Camera Camera;
         [SerializeField, EditorReadOnly] private RenderTexture _renderTexture;
         public Renderer MeshRenderer;
@@ -45,11 +46,10 @@ namespace AgarthaLib.Goodies.Portals
 
         [Header("Debug")]
         [NonSerialized] public Vector4 VectorPlane;
-        [SerializeField, EditorReadOnly] private bool _isBeingRendered = false;
+        [SerializeField, EditorReadOnly] private bool _shouldRender = false;
 
         public bool IsBeingRendered => MeshRenderer.isVisible
-                && MeshRenderer.IsVisibleFrom(_mainCamera)
-                && PortalOcclusionVolume.IsInSameVolume(_mainCamera, this);
+                && MeshRenderer.IsVisibleFrom(_mainCamera);
 
         protected override void Start()
         {
@@ -101,15 +101,15 @@ namespace AgarthaLib.Goodies.Portals
 
         private void LateUpdate()
         {
-            _isBeingRendered = IsBeingRendered;
-            if (!_isBeingRendered)
+            _shouldRender = EnableRendering && IsBeingRendered;
+            if (!_shouldRender)
                 return;
 
             var mc = _mainCamera.transform;
-            RecursiveRender(mc.position, mc.rotation, Camera, 0);
+            RecursiveRender(mc.position, mc.rotation, Camera, 0, TrueDepth);
         }
 
-        public void RecursiveRender(Vector3 pos, Quaternion rot, Camera cam, int depth, RenderTexture propagate = null)
+        public void RecursiveRender(Vector3 pos, Quaternion rot, Camera cam, int depth, int maxDepth, RenderTexture propagate = null)
         {
             propagate = propagate ? propagate : cam.targetTexture;
 
@@ -124,14 +124,14 @@ namespace AgarthaLib.Goodies.Portals
             }
 
             // Recursion check
-            if (depth < TrueDepth)
+            if (depth < maxDepth)
             {
                 foreach (var visiblePortal in LinkedPortal.VisiblePortals)
                 {
                     if (!visiblePortal.MeshRenderer.IsVisibleFrom(cam))
                         continue;
 
-                    visiblePortal.RecursiveRender(virtualPosition, virtualRotation, cam, depth + 1, propagate);
+                    visiblePortal.RecursiveRender(virtualPosition, virtualRotation, cam, depth + 1, maxDepth, propagate);
                 }
             }
             else if (InfiniteDepth && depth < MaxDepth)
@@ -187,7 +187,6 @@ namespace AgarthaLib.Goodies.Portals
                 var newPos = TransformPosition(item.position);
                 var newRot = TransformRotation(item.rotation);
                 item.SetPositionAndRotation(newPos, newRot);
-                Physics.SyncTransforms();
 
                 RaiseEvent<PortalTeleportedEvent>(item.gameObject, new(this, LinkedPortal, newPos, newRot));
 
@@ -233,8 +232,8 @@ namespace AgarthaLib.Goodies.Portals
                 return;
 
             // entering the portal from behind - don't teleport, let the entity pass
-            //if (GetDotProduct(other.position) < 0.5f)
-            //    return;
+            if (GetDotProduct(other.position) < 0f)
+                return;
 
             if (!_collidingObjects.Contains(other))
                 _collidingObjects.Add(other);
