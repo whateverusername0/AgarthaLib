@@ -35,7 +35,7 @@ namespace AgarthaLib.Goodies.Portals
         [SerializeField, EditorReadOnly] private List<Transform> _objectRemovalQueue = new();
 
         [Header("Rendering")]
-        public bool EnableRendering = true;
+        public bool RenderingEnabled = true;
         [ValidateNull(traverse: true)] public Camera Camera;
         [SerializeField, EditorReadOnly] private RenderTexture _renderTexture;
         public Renderer MeshRenderer;
@@ -50,6 +50,8 @@ namespace AgarthaLib.Goodies.Portals
 
         public bool IsBeingRendered => MeshRenderer.isVisible
                 && MeshRenderer.IsVisibleFrom(_mainCamera);
+
+        public void EnableRendering(bool enable) => RenderingEnabled = enable;
 
         protected override void Start()
         {
@@ -101,7 +103,7 @@ namespace AgarthaLib.Goodies.Portals
 
         private void LateUpdate()
         {
-            _shouldRender = EnableRendering && IsBeingRendered;
+            _shouldRender = RenderingEnabled && IsBeingRendered;
             if (!_shouldRender)
                 return;
 

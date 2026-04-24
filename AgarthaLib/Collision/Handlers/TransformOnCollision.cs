@@ -2,7 +2,10 @@
 using AgarthaLib.EventSystem;
 using AgarthaLib.Extensions;
 using AgarthaLib.MonoBehavior;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace AgarthaLib.Collision.Handlers
 {
@@ -23,6 +26,10 @@ namespace AgarthaLib.Collision.Handlers
 
         [Header("Trigger")]
         public bool RevertTrigger = false;
+        [SerializeField] private UnityEvent _beginEvent;
+        [SerializeField] private UnityEvent _endEvent;
+        [SerializeField] private UnityEvent _revertBeginEvent;
+        [SerializeField] private UnityEvent _revertEndEvent;
 
         [Header("Private")]
         [SerializeField, EditorReadOnly] private Vector3 _lastPosition;
@@ -102,10 +109,10 @@ namespace AgarthaLib.Collision.Handlers
         public void Transform(Transform t, Vector3 pdelta, Quaternion rdelta, float duration, bool ease, TransformType type)
         {
             if (Flag == TransformFlags.Position || Flag == TransformFlags.All)
-                t.SmoothMove(pdelta, duration, ease, type);
+                t.SmoothMoveCoroutine(pdelta, duration, ease, type);
 
             if (Flag == TransformFlags.Rotation || Flag == TransformFlags.All)
-                t.SmoothRotate(rdelta, duration, ease, type);
+                t.SmoothRotateCoroutine(rdelta, duration, ease, type);
         }
     }
 }

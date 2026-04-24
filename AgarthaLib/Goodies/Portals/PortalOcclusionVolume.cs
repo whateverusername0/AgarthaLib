@@ -37,7 +37,7 @@ namespace AgarthaLib.Goodies.Portals
             => RenderPortals(false);
 
         public void RenderPortals(bool render)
-            => OccludedPortals.ForEach(q => q.EnableRendering = render);
+            => OccludedPortals.ForEach(q => q.RenderingEnabled = render);
 
         [ContextMenu("Resolve visible portals")] public void ResolvePortals()
         {

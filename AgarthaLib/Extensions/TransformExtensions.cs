@@ -19,7 +19,7 @@ namespace AgarthaLib.Extensions
     {
         private static CoroutineManager _coroutine => CoroutineManager.Instance;
 
-        public static void SmoothMove(this Transform t, Vector3 delta,
+        public static CoroutineData SmoothMoveCoroutine(this Transform t, Vector3 delta,
             float duration, bool ease, TransformType type)
             => _coroutine.Add(IEMove(t, delta, duration, ease, type));
 
@@ -53,7 +53,7 @@ namespace AgarthaLib.Extensions
             yield break;
         }
 
-        public static void SmoothRotate(this Transform t, Quaternion delta,
+        public static CoroutineData SmoothRotateCoroutine(this Transform t, Quaternion delta,
             float duration, bool ease, TransformType type)
             => _coroutine.Add(IERotate(t, delta, duration, ease, type));
 
