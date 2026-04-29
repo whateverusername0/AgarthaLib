@@ -1,45 +1,19 @@
-﻿using AgarthaLib.Sprites.Layers.Rendering;
-using AgarthaLib.Sprites.Layers;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-using AgarthaLib.Extensions;
 
-public class LayeredRawImageRenderer : LayeredSpriteRendererBase
+namespace AgarthaLib.Sprites.Layers.Rendering
 {
-    protected override void CreateLayer(SpriteLayer layer)
+    [RequireComponent(typeof(RawImage))]
+    public class LayeredRawImageRenderer : LayeredSpriteRendererBase<RawImage>
     {
-        var go = new GameObject(layer.Name);
-        go.transform.SetParent(transform);
-        go.AddComponent<RawImage>();
-        UpdateLayer(layer);
-    }
+        protected override int GetOrderInLayer(RawImage renderer) => 0;
 
-    protected override void UpdateLayer(SpriteLayer layer)
-    {
-        var child = transform.GetChildByName(layer.Name);
-        if (child == null) return;
+        protected override void SetOrderInLayer(RawImage renderer, int order) { }
 
-        if (!child.TryGetComponent<RawImage>(out var sr))
-            return;
+        protected override void SetMaterial(RawImage renderer, Material mat)
+            => renderer.material = mat;
 
-        sr.texture = layer.Sprite.texture;
-        sr.material = layer.Material != null ? layer.Material : sr.material;
-    }
-
-    protected override void SortLayers()
-    {
-        var layers = transform.GetChildren();
-        var map = Sprite.LayerMap;
-
-        // sorting
-        foreach (var l in layers)
-        {
-            if (!map.TryGetLayer(l.name, out var layerData)
-            || !l.TryGetComponent<RawImage>(out var sr))
-                continue;
-
-            var index = map.Map.IndexOf(layerData).Reverse(map.Map.Count);
-            sr.transform.SetSiblingIndex(index);
-        }
+        protected override void SetSprite(RawImage renderer, Sprite sprite)
+            => renderer.texture = sprite.texture;
     }
 }

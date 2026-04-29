@@ -1,46 +1,19 @@
-﻿using AgarthaLib.Extensions;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace AgarthaLib.Sprites.Layers.Rendering
 {
-    public class LayeredImageRenderer : LayeredSpriteRendererBase
+    [RequireComponent(typeof(Image))]
+    public class LayeredImageRenderer : LayeredSpriteRendererBase<Image>
     {
-        protected override void CreateLayer(SpriteLayer layer)
-        {
-            var go = new GameObject(layer.Name);
-            go.transform.SetParent(transform);
-            go.AddComponent<Image>();
-            UpdateLayer(layer);
-        }
+        protected override int GetOrderInLayer(Image renderer) => 0;
 
-        protected override void UpdateLayer(SpriteLayer layer)
-        {
-            var child = transform.GetChildByName(layer.Name);
-            if (child == null) return;
+        protected override void SetOrderInLayer(Image renderer, int order) { }
 
-            if (!child.TryGetComponent<Image>(out var sr))
-                return;
+        protected override void SetMaterial(Image renderer, Material mat)
+            => renderer.material = mat;
 
-            sr.sprite = layer.Sprite;
-            sr.material = layer.Material != null ? layer.Material : sr.material;
-        }
-
-        protected override void SortLayers()
-        {
-            var layers = transform.GetChildren();
-            var map = Sprite.LayerMap;
-
-            // sorting
-            foreach (var l in layers)
-            {
-                if (!map.TryGetLayer(l.name, out var layerData)
-                || !l.TryGetComponent<Image>(out var sr))
-                    continue;
-
-                var index = map.Map.IndexOf(layerData).Reverse(map.Map.Count);
-                sr.transform.SetSiblingIndex(index);
-            }
-        }
+        protected override void SetSprite(Image renderer, Sprite sprite)
+            => renderer.sprite = sprite;
     }
 }
