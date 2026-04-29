@@ -21,6 +21,7 @@ namespace AgarthaLib.MonoBehavior
 
     public class CoroutineManager : AgarthanSingleton<CoroutineManager>
     {
+        // TODO change to a dictionary that includes Invoker.
         [SerializeField, EditorReadOnly] private List<CoroutineData> _pool = new();
 
         protected override void Update()

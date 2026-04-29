@@ -131,6 +131,7 @@ namespace AgarthaLib.Extensions
         public static List<T> GetChildren<T>(this Transform t) where T : Component
             => t.GetChildren().ConvertAll(q => q.GetComponent<T>()).Where(q => q != null).ToList();
 
+        /// <inheritdoc cref="Transform.Find(string)"/>
         public static Transform GetChildByName(this Transform t, string name)
             => t.Find(name);
 

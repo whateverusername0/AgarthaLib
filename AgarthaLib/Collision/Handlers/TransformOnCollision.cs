@@ -11,6 +11,8 @@ namespace AgarthaLib.Collision.Handlers
 {
     public class TransformOnCollision : AgarthanBehaviour
     {
+        private CoroutineManager _coroutine => CoroutineManager.Instance;
+
         [Header("Properties")]
         [SerializeField] private Transform _target;
         public Transform Target => _target != null ? _target : this.transform;
@@ -103,16 +105,38 @@ namespace AgarthaLib.Collision.Handlers
             if (!_triggered || !RevertTrigger) return;
             _triggered = false;
 
-            Transform(Target, _lastPosition, _lastRotation, Duration, Ease, TransformType.Absolute);
+            Transform(Target, _lastPosition, _lastRotation, Duration, Ease, TransformType.Absolute, true);
         }
 
-        public void Transform(Transform t, Vector3 pdelta, Quaternion rdelta, float duration, bool ease, TransformType type)
+        public void Transform(Transform t, Vector3 pdelta, Quaternion rdelta,
+            float duration, bool ease, TransformType type, bool revert = false)
         {
+            var ies = new List<IEnumerator>();
             if (Flag == TransformFlags.Position || Flag == TransformFlags.All)
-                t.SmoothMoveCoroutine(pdelta, duration, ease, type);
+                ies.Add(t.IESmoothMoveCoroutine(pdelta, duration, ease, type));
 
             if (Flag == TransformFlags.Rotation || Flag == TransformFlags.All)
-                t.SmoothRotateCoroutine(rdelta, duration, ease, type);
+                ies.Add(t.IESmoothRotateCoroutine(rdelta, duration, ease, type));
+
+            StartCoroutine(IETransformCoroutineWrapper(ies, revert));
+        }
+
+        private IEnumerator IETransformCoroutineWrapper(List<IEnumerator> ies, bool revert)
+        {
+            if (revert) _revertBeginEvent?.Invoke();
+            else _beginEvent?.Invoke();
+
+            // invoke all
+            var cds = new List<CoroutineData>();
+            foreach (var ie in ies)
+                cds.Add(_coroutine.Add(ie));
+
+            // wait for all
+            foreach (var cd in cds)
+                while (!cd.Finished) yield return null;
+
+            if (revert) _revertEndEvent?.Invoke();
+            else _endEvent?.Invoke();
         }
     }
 }
