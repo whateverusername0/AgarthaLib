@@ -108,6 +108,16 @@ namespace AgarthaLib.Extensions
         public static bool TryFindChild(this Transform t, string name, out Transform child)
             => (child = t.Find(name)) != null;
 
+        public static Transform EnsureChild(this Transform t, string name)
+        {
+            if (t.TryFindChild(name, out var tr))
+                return tr;
+
+            var go = new GameObject(name);
+            go.transform.SetParent(t.transform, false);
+            return go.transform;
+        }
+
         public static List<Transform> GetChildren(this Transform t)
         {
             var l = new List<Transform>();
