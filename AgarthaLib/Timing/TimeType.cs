@@ -1,9 +1,14 @@
-﻿namespace AgarthaLib.Timing
+﻿using System;
+
+namespace AgarthaLib.Timing
 {
-    public enum TimeType
+    [Serializable] public enum TimeType
     {
-        Normal = 0,
-        Unscaled = 1,
-        Fixed = 2,
+        Normal,
+        Late,
+        Unscaled,
+        LateUnscaled,
+        Fixed,
+        FixedUnscaled,
     }
 }
