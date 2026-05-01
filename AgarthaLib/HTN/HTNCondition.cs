@@ -1,14 +1,26 @@
-﻿using UnityEngine;
+﻿using AgarthaLib.MonoBehavior;
+using System;
 
 namespace AgarthaLib.HTN
 {
-    public abstract class HTNCondition : MonoBehaviour
+    public interface IHTNCondition
     {
+        public bool CheckCondition(HTNAgent agent);
+    }
+
+    public abstract class HTNCondition : AgarthanBehaviour, IHTNCondition
+    {
+        // plans get their conditions handled in HTNAgent
+        // meanwhile HTNTasks will have to write their own condition handlers.
+        public abstract bool CheckCondition(HTNAgent agent);
+    }
+
+    [Serializable] public class SerializedHTNConditionData
+    {
+        public HTNCondition Component;
         public bool ConditionMet = false;
 
-        public void UpdateCondition(HTNAgent agent)
-            => ConditionMet = CheckCondition(agent);
-
-        protected abstract bool CheckCondition(HTNAgent agent);
+        public SerializedHTNConditionData(HTNCondition condition)
+            => Component = condition;
     }
 }

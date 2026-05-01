@@ -1,80 +1,64 @@
-﻿using AgarthaLib.MonoBehavior;
-using System;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.MonoBehavior;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace AgarthaLib.HTN
 {
     public class HTNAgent : AgarthanBehaviour
     {
-        /// <summary>
-        ///     The higher the number, the higher it's priority is.
-        ///     Means 0 is the lowest.
-        /// </summary>
-        public List<HTNPlan> Blackboard;
-        public HTNTaskData SelectedTask;
+        public HTNBlackboard Blackboard;
+        [EditorReadOnly] public HTNPlan CurrentPlan;
 
-        public float ThinkDelay = 1f;
+        public float PlanChangeDelay = 1f;
 
-        protected override void Start()
+        private Coroutine _coroutine = null;
+
+        protected override void Update()
         {
-            base.Start();
-            StartCoroutine(UpdateAgent());
+            base.Update();
+
+            if (_coroutine == null)
+                StartCoroutine(UpdateCoroutine());
         }
 
-        protected virtual IEnumerator UpdateAgent()
+        protected virtual void OnDisable()
         {
-            while (true)
+            if (_coroutine != null)
             {
-                yield return new WaitForSeconds(ThinkDelay);
-
-                if (Blackboard == null || Blackboard.Count == 0)
-                    continue;
-
-                foreach (var plan in Blackboard)
-                {
-                    if (plan.Condition != null)
-                    {
-                        plan.Condition.UpdateCondition(this);
-                        if (!plan.Condition.ConditionMet)
-                            continue;
-                    }
-                    SelectedTask = new(plan.Task);
-                }
-
-                if (SelectedTask != null)
-                {
-                    var task = SelectedTask.Task.TaskUpdateEnumerator(this);
-                    while (task.MoveNext())
-                    {
-                        yield return null;
-                        SelectedTask.Status = task.Current;
-
-                        if (task.Current == HTNTaskStatus.Continuing) continue;
-                        else break;
-                    }
-                }
-
-                SelectedTask = null;
+                StopCoroutine(_coroutine);
+                _coroutine = null;
             }
         }
-    }
 
-    [Serializable] public class HTNPlan
-    {
-        public HTNCondition Condition;
-        public HTNTask Task;
-    }
-
-    [Serializable] public class HTNTaskData
-    {
-        public HTNTask Task;
-        public HTNTaskStatus? Status;
-
-        public HTNTaskData(HTNTask task)
+        protected virtual IEnumerator UpdateCoroutine()
         {
-            Task = task;
+            while (this.isActiveAndEnabled)
+            {
+                yield return new WaitForSeconds(PlanChangeDelay);
+
+                var plans = Blackboard.Plans;
+                foreach (var plan in plans)
+                {
+                    if (!CheckCondition(plan.Condition))
+                        continue;
+
+                    CurrentPlan = plan;
+                    break;
+                }
+
+                if (CurrentPlan == null)
+                    continue;
+
+                var ie = CurrentPlan.TaskUpdateEnumerator(this);
+                while (ie.MoveNext())
+                    yield return ie.Current;
+
+                CurrentPlan = null;
+            }
         }
+
+        private bool CheckCondition(SerializedHTNConditionData condition)
+            => condition == null || (condition.ConditionMet || condition.Component.CheckCondition(this));
     }
 }
