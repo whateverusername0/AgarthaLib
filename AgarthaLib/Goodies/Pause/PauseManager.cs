@@ -1,6 +1,5 @@
 ﻿using AgarthaLib.MonoBehavior;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace AgarthaLib.Goodies.Pause
 {
