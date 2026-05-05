@@ -24,5 +24,8 @@ namespace AgarthaLib.Extensions
 
         public static Vector3 XZ(this Vector3 v)
             => new(v.x, 0, v.z);
+
+        public static Vector3 LookDirection(this Vector3 v, Vector3 target)
+            => target - v;
     }
 }

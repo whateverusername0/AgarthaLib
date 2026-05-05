@@ -145,6 +145,9 @@ namespace AgarthaLib.Extensions
         public static Transform GetChildByName(this Transform t, string name)
             => t.Find(name);
 
+        public static Vector3 LookDirection(this Transform t, Transform target)
+            => target.position - t.position;
+
         #endregion
 
         #region Rendering
