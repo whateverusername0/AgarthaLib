@@ -19,6 +19,10 @@ namespace AgarthaLib.MonoBehavior
             => Enumerator = routine;
     }
 
+    /// <summary>
+    ///     Centralized coroutine manager.
+    ///     Supposed to be a little smarter than whatever Unity has.
+    /// </summary>
     public class CoroutineManager : AgarthanSingleton<CoroutineManager>
     {
         // TODO change to a dictionary that includes Invoker.
