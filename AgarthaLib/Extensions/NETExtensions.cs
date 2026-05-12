@@ -10,26 +10,37 @@ namespace AgarthaLib.Extensions
 {
     public static class NETExtensions
     {
-        public static float Reverse(this float @object, float max)
-            => max - @object;
+        public static float Loop(this float f, float loop)
+            => f >= loop ? f - loop : (f <= -loop ? f + loop : f);
 
-        public static int Reverse(this int @object, int max)
-            => max - @object;
-
-        public static bool IsValid<T>(this List<T> @object)
-            => @object != null && @object.Count > 0;
-
-        public static List<T> Reverse<T>(this List<T> @object)
+        public static float RecursiveLoop(this float f, float loop)
         {
-            var list = new List<T>(@object);
+            var result = f.Loop(loop);
+            if (f > loop || f < -loop)
+                return result.RecursiveLoop(loop);
+            return result;
+        }
+
+        public static float Reverse(this float f, float max)
+            => max - f;
+
+        public static int Reverse(this int i, int max)
+            => max - i;
+
+        public static bool IsValid<T>(this List<T> l)
+            => l != null && l.Count > 0;
+
+        public static List<T> Reverse<T>(this List<T> l)
+        {
+            var list = new List<T>(l);
             list.Reverse();
             return list;
         }
 
-        public static float Normalize(this float @object, float min, float max)
-            => (@object - min) / (max - min);
-        public static float Normalize(this float @object, ValueRange<float> thresholds)
-            => Normalize(@object, thresholds.Min, thresholds.Max);
+        public static float Normalize(this float f, float min, float max)
+            => (f - min) / (max - min);
+        public static float Normalize(this float f, ValueRange<float> thresholds)
+            => Normalize(f, thresholds.Min, thresholds.Max);
 
         public static bool Compare(this IEnumerator a, IEnumerator b)
         {

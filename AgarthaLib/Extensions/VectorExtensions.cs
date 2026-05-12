@@ -27,5 +27,13 @@ namespace AgarthaLib.Extensions
 
         public static Vector3 LookDirection(this Vector3 v, Vector3 target)
             => target - v;
+
+        public static Vector3 Clamp(this Vector3 v, Vector3 min, Vector3 max)
+        {
+            var x = Mathf.Clamp(v.x, min.x, max.x);
+            var y = Mathf.Clamp(v.y, min.y, max.y);
+            var z = Mathf.Clamp(v.z, min.z, max.z);
+            return new(x, y, z);
+        }
     }
 }
