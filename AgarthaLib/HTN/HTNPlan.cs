@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AgarthaLib.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace AgarthaLib.HTN
     [Serializable] public class HTNPlan : HTNTask
     {
         public List<SerializedHTNTaskData> Tasks = new();
-        public HTNTaskStatus Status = HTNTaskStatus.Waiting;
+        [EditorReadOnly] public HTNTaskStatus Status = HTNTaskStatus.Waiting;
 
         [Tooltip("If true, tasks will update simultaneously. If false, tasks will update one by one.")]
         public bool UpdateConcurrently = true;
