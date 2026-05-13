@@ -1,4 +1,5 @@
-﻿using AgarthaLib.MonoBehavior;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.MonoBehavior;
 using System;
 using System.Collections.Generic;
 
@@ -19,7 +20,7 @@ namespace AgarthaLib.HTN
     [Serializable] public class SerializedHTNTaskData
     {
         public HTNTask Component;
-        public HTNTaskStatus Status = HTNTaskStatus.Waiting;
+        [EditorReadOnly] public HTNTaskStatus Status = HTNTaskStatus.Waiting;
 
         public SerializedHTNTaskData(HTNTask task)
             => Component = task;
