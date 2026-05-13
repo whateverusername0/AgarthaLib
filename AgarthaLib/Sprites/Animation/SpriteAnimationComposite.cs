@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AgarthaLib.Sprites.Animation
@@ -7,6 +8,7 @@ namespace AgarthaLib.Sprites.Animation
     ///     Third base class. Unwraps into a list of sprite animations.
     /// </summary>
     [CreateAssetMenu(menuName = "AgarthaLib / Sprite animations / Sprite animation composite")]
+    [Obsolete("Please use the Animation.Sprite namespace instead")]
     public class SpriteAnimationComposite : SpriteAnimationBase
     {
         public List<SpriteAnimation> Animations;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AgarthaLib.Sprites.Animation
@@ -7,6 +8,7 @@ namespace AgarthaLib.Sprites.Animation
     ///     Second base class. Is used as a data structure in child classes.
     /// </summary>
     [CreateAssetMenu(menuName = "AgarthaLib / Sprite animations / Sprite animation")]
+    [Obsolete("Please use the Animation.Sprite namespace instead")]
     public class SpriteAnimation : SpriteAnimationBase
     {
         public int FPS = 12;

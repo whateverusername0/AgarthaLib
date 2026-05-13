@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace AgarthaLib.Sprites.Animation.SpriteAnimator
 {
+    [Obsolete("Please use the Animation.Sprite namespace instead")]
     public abstract class SpriteAnimatorBase : AgarthanBehaviour
     {
         [SerializeField] protected List<SpriteAnimatorQueueItem> _queue;
@@ -151,7 +152,9 @@ namespace AgarthaLib.Sprites.Animation.SpriteAnimator
         }
     }
 
-    [Serializable] public class SpriteAnimatorQueueItem
+    [Serializable]
+    [Obsolete("Please use the Animation.Sprite namespace instead")]
+    public class SpriteAnimatorQueueItem
     {
         public SpriteAnimation Animation;
         public Action EndAction;
