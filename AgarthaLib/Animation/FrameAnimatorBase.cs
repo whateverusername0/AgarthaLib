@@ -5,11 +5,20 @@ using UnityEngine;
 
 namespace AgarthaLib.Animation
 {
-    public abstract class FrameAnimatorBase<T> : AgarthanBehaviour where T : FrameAnimation<T>
+    /// <summary>
+    ///     An abstract definition of a class that's supposed to set frames based on timing,
+    ///     akin to a keyframe animator.
+    ///     It really is just an animator.
+    /// </summary>
+    /// <typeparam name="TAnim"> A concrete frame animation class. </typeparam>
+    /// <typeparam name="TFrame"> A concrete frame type. </typeparam>
+    public abstract class FrameAnimatorBase<TAnim, TFrame> : AgarthanBehaviour
+        where TAnim : FrameAnimation<TFrame>
+        where TFrame : Object
     {
-        protected abstract List<T> GetQueue();
-        protected abstract T GetCurrentAnimation();
-        protected abstract void SetCurrentAnimation(T value);
+        protected abstract List<TAnim> GetQueue();
+        protected abstract TAnim GetCurrentAnimation();
+        protected abstract void SetCurrentAnimation(TAnim value);
 
         [SerializeField] protected TimeType TimeScale;
 
@@ -23,32 +32,38 @@ namespace AgarthaLib.Animation
             if (TimeScale != TimeType.Normal && TimeScale != TimeType.Unscaled)
                 return;
 
-            _animTime += TimeScale == TimeType.Normal ? Time.deltaTime : Time.unscaledDeltaTime;
+            _animTime += TimeScale == TimeType.Normal
+                ? Time.deltaTime
+                : Time.unscaledDeltaTime;
 
             Cycle();
         }
 
-        private void LateUpdate()
+        protected virtual void LateUpdate()
         {
             if (TimeScale != TimeType.Late && TimeScale != TimeType.LateUnscaled)
                 return;
 
-            _animTime += TimeScale == TimeType.LateUnscaled ? Time.unscaledDeltaTime : Time.deltaTime;
+            _animTime += TimeScale == TimeType.LateUnscaled
+                ? Time.unscaledDeltaTime
+                : Time.deltaTime;
 
             Cycle();
         }
 
-        private void FixedUpdate()
+        protected virtual void FixedUpdate()
         {
             if (TimeScale != TimeType.Fixed && TimeScale != TimeType.FixedUnscaled)
                 return;
 
-            _animTime += TimeScale == TimeType.FixedUnscaled ? Time.fixedUnscaledDeltaTime : Time.fixedDeltaTime;
+            _animTime += TimeScale == TimeType.FixedUnscaled
+                ? Time.fixedUnscaledDeltaTime
+                : Time.fixedDeltaTime;
 
             Cycle();
         }
 
-        private void Cycle()
+        protected virtual void Cycle()
         {
             var queue = GetQueue();
             var currentAnimation = GetCurrentAnimation();
@@ -62,7 +77,7 @@ namespace AgarthaLib.Animation
             Cycle(currentAnimation);
         }
 
-        private void Cycle(T anim)
+        protected virtual void Cycle(TAnim anim)
         {
             if (anim == null) return;
 
@@ -84,57 +99,29 @@ namespace AgarthaLib.Animation
             }
         }
 
-        protected abstract void SetFrame(T frame);
-        protected virtual void HandleFrame(int frame) { } // do nothing
-
-        public void ClearPlayingAnimation()
+        public virtual void ResetTime()
         {
-            SetCurrentAnimation(null);
             _currentFrame = 0;
             _animTime = 0f;
         }
 
-        public FrameAnimatorBase<T> MoveNext()
+        protected abstract void SetFrame(TFrame frame);
+        protected abstract void HandleFrame(int frame);
+
+        public abstract void ClearPlayingAnimation();
+
+        public virtual void MoveNext()
         {
             var queue = GetQueue();
 
             ClearPlayingAnimation();
             if (queue.Count >= 1)
                 queue.RemoveAt(0);
-            return this;
         }
 
-        public FrameAnimatorBase<T> Enqueue(T anim)
-        {
-            GetQueue().Add(anim);
-            return this;
-        }
+        protected abstract void Enqueue(TAnim anim);
+        protected abstract void Enqueue(List<TAnim> anims);
 
-        public FrameAnimatorBase<T> Enqueue(List<T> anims)
-        {
-            GetQueue().AddRange(anims);
-            return this;
-        }
-
-        public FrameAnimatorBase<T> ResetQueue()
-        {
-            ClearPlayingAnimation();
-            GetQueue().Clear();
-            SetCurrentAnimation(null);
-            return this;
-        }
-
-        public T PlayForce(T anim)
-        {
-            ResetQueue();
-            Enqueue(anim);
-            return anim;
-        }
-
-        public void PlayForce(List<T> anims)
-        {
-            ResetQueue();
-            Enqueue(anims);
-        }
+        public abstract void ResetQueue();
     }
 }

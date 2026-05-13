@@ -3,9 +3,14 @@ using UnityEngine;
 
 namespace AgarthaLib.Animation
 {
-    public abstract class FrameAnimation<T> : ScriptableObject where T : Object
+    /// <summary>
+    ///     An abstract definition of a keyframe based animation.
+    /// </summary>
+    /// <typeparam name="TFrame"> A concrete frame type. </typeparam>
+    public abstract class FrameAnimation<TFrame> : ScriptableObject
+        where TFrame : Object
     {
-        public List<T> Frames = new();
+        public List<TFrame> Frames = new();
         public int FPS = 12;
         public bool Loop = true;
     }
