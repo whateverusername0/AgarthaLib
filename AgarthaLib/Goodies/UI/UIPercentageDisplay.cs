@@ -1,13 +1,15 @@
-﻿using AgarthaLib.Data.Serialization.SerializedTypes;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.Data.Serialization.SerializedTypes;
+using AgarthaLib.MonoBehavior;
 using TMPro;
 using UnityEngine;
 
-namespace AgarthaLib.UI
+namespace AgarthaLib.Goodies.UI
 {
-    public class UIPercentageDisplay : MonoBehaviour
+    public class UIPercentageDisplay : AgarthanBehaviour
     {
         public SerializedFloat Range;
-        public TMP_Text Text;
+        [ValidateNull] public TMP_Text Text;
 
         public bool UseLerp = true;
         public float Speed = 2.5f;
@@ -15,8 +17,11 @@ namespace AgarthaLib.UI
         private float _lerp = 0f;
         private float _range = 0f;
 
-        private void Update()
+        protected override void Update()
         {
+            if (Range == null)
+                return;
+
             var perc = (Range.Value - Range.Min) / Range.Max;
 
             _range = perc;

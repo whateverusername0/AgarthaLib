@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AgarthaLib.WeightedRandom
+namespace AgarthaLib.Goodies.WeightedRandom
 {
     [Serializable] public class WeightedItem<T>
     {

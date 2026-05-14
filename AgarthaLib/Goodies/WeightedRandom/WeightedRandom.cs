@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AgarthaLib.WeightedRandom
+namespace AgarthaLib.Goodies.WeightedRandom
 {
-    // my implementation of weighted random pick from TIDESIM.
     public class WeightedRandom
     {
         private readonly Random _rng;

@@ -1,25 +1,29 @@
-﻿using System.Collections;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.MonoBehavior;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
-namespace AgarthaLib.UI
+namespace AgarthaLib.Goodies.UI
 {
-    public class UITypewriter : MonoBehaviour
+    public class UIStaticTypewriter : AgarthanBehaviour
     {
-        public TMP_Text Text;
+        [ValidateNull] public TMP_Text Text;
         [Multiline] public string TextToWrite;
         public int CPS = 10;
         public bool StartOnEnable = false;
 
         private void OnEnable()
         {
-            Text = Text != null ? Text : GetComponent<TMP_Text>();
-
-            if (StartOnEnable) Typewrite(TextToWrite);
+            if (StartOnEnable)
+                Typewrite(TextToWrite);
         }
 
         public void Typewrite(string text)
         {
+            if (Text == null)
+                return;
+
             StartCoroutine(DoTypewriter(text));
         }
 
