@@ -12,22 +12,30 @@ namespace AgarthaLib.HTN
 
         public float PlanChangeDelay = 1f;
 
-        private Coroutine _coroutine = null;
+        private Coroutine
+            _updateCoroutine = null,
+            _updatePlanCoroutine = null;
 
         protected override void Update()
         {
             base.Update();
 
-            if (_coroutine == null)
-                StartCoroutine(UpdateCoroutine());
+            _updateCoroutine ??= StartCoroutine(UpdateCoroutine());
+            _updatePlanCoroutine ??= StartCoroutine(UpdatePlanCoroutine());
         }
 
         protected virtual void OnDisable()
         {
-            if (_coroutine != null)
+            if (_updateCoroutine != null)
             {
-                StopCoroutine(_coroutine);
-                _coroutine = null;
+                StopCoroutine(_updateCoroutine);
+                _updateCoroutine = null;
+            }
+
+            if (_updatePlanCoroutine != null)
+            {
+                StopCoroutine(_updatePlanCoroutine);
+                _updatePlanCoroutine = null;
             }
         }
 
@@ -35,30 +43,34 @@ namespace AgarthaLib.HTN
         {
             while (this.isActiveAndEnabled)
             {
-                yield return new WaitForSeconds(PlanChangeDelay);
-
-                var plans = Blackboard.Plans;
-                foreach (var plan in plans)
+                if (CurrentPlan != null)
                 {
-                    if (!CheckCondition(plan.Condition))
-                        continue;
+                    var ie = CurrentPlan.TaskUpdateEnumerator(this);
+                    ie.MoveNext();
 
-                    CurrentPlan = plan;
-                    break;
+                    if (ie.IsFinished())
+                        CurrentPlan = null;
                 }
 
-                if (CurrentPlan == null)
-                    continue;
-
-                var ie = CurrentPlan.TaskUpdateEnumerator(this);
-                while (ie.MoveNext())
-                    yield return ie.Current;
-
-                CurrentPlan = null;
+                yield return null;
             }
         }
 
-        private bool CheckCondition(SerializedHTNConditionData condition)
-            => condition == null || (condition.ConditionMet || condition.Component.CheckCondition(this));
+        protected virtual IEnumerator UpdatePlanCoroutine()
+        {
+            while (this.isActiveAndEnabled)
+            {
+                var bestPlan = Blackboard.GetBestPlan(this);
+                if (CurrentPlan != bestPlan)
+                {
+                    if (CurrentPlan != null)
+                        CurrentPlan.ResetPlan();
+
+                    CurrentPlan = bestPlan;
+                }
+
+                yield return new WaitForSeconds(PlanChangeDelay);
+            }
+        }
     }
 }

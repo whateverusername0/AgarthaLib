@@ -12,8 +12,15 @@ namespace AgarthaLib.HTN
 
     public abstract class HTNTask : AgarthanBehaviour, IHTNTask
     {
-        public SerializedHTNConditionData Condition;
+        public HTNCondition Condition;
 
+        /// <summary>
+        ///     A method which will supposedly be executed each frame.
+        /// </summary>
+        /// <remarks>
+        ///     do/while loops are highly discouraged,
+        ///     since HTNAgents are supposed to handle that for the tasks.
+        /// </remarks>
         public abstract IEnumerator<HTNTaskStatus> TaskUpdateEnumerator(HTNAgent agent);
     }
 
@@ -28,10 +35,10 @@ namespace AgarthaLib.HTN
 
     [Serializable] public enum HTNTaskStatus
     {
-        Completed,
-        Continuing,
-        Failed,
         Waiting,
+        Continuing,
+        Completed,
+        Failed,
     }
 
     public static class HTNTaskStatusExtensions

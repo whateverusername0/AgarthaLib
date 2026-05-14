@@ -15,7 +15,7 @@ namespace AgarthaLib.HTN
         public bool UpdateConcurrently = true;
 
         [Tooltip("If true, will automatically reset the plan once all tasks are done.")]
-        public bool AutoResetPlan = false;
+        public bool AutoResetPlan = true;
 
         public override IEnumerator<HTNTaskStatus> TaskUpdateEnumerator(HTNAgent agent)
         {
@@ -26,76 +26,68 @@ namespace AgarthaLib.HTN
                 ? ConcurrentTaskUpdateEnumerator(agent)
                 : OrderedTaskUpdateEnumerator(agent);
 
-            while (ie.MoveNext())
-            {
-                yield return ie.Current;
-                Status = ie.Current;
+            ie.MoveNext();
 
-                if (!ie.IsRunning())
-                    break;
-            }
+            Status = ie.Current;
 
-            // assume the plan is complete
-            if (AutoResetPlan) ResetPlan(agent);
-            yield return Status;
+            if (!ie.IsRunning() && AutoResetPlan)
+                ResetPlan();
+
+            yield return ie.Current;
         }
 
         private IEnumerator<HTNTaskStatus> ConcurrentTaskUpdateEnumerator(HTNAgent agent)
         {
-            do
+            foreach (var task in Tasks)
             {
-                foreach (var task in Tasks)
-                {
-                    var ie = task.Component.TaskUpdateEnumerator(agent);
+                var ie = task.Component.TaskUpdateEnumerator(agent);
 
-                    // assume it's completed and does not require iteration
-                    if (!ie.IsRunning())
-                        continue;
+                // assume it's completed and does not require iteration
+                if (!task.IsRunning())
+                    continue;
 
-                    ie.MoveNext();
-                    task.Status = ie.Current;
+                ie.MoveNext();
 
-                    yield return HTNTaskStatus.Continuing;
-                }
-            } while (Tasks.Any(q => q.IsRunning()));
+                task.Status = ie.Current;
+            }
 
-            // if all tasks failed assume the plan is too
-            var failed = Tasks.All(q => q.Status == HTNTaskStatus.Failed);
-            yield return failed ? HTNTaskStatus.Failed : HTNTaskStatus.Completed;
+            if (!Tasks.Any(q => q.IsRunning()))
+            {
+                var failed = Tasks.All(q => q.Status == HTNTaskStatus.Failed);
+                yield return failed ? HTNTaskStatus.Failed : HTNTaskStatus.Completed;
+            }
+
+            yield return HTNTaskStatus.Continuing;
         }
 
         private IEnumerator<HTNTaskStatus> OrderedTaskUpdateEnumerator(HTNAgent agent)
         {
             foreach (var task in Tasks)
             {
-                do
-                {
-                    var ie = task.Component.TaskUpdateEnumerator(agent);
-                    ie.MoveNext();
+                if (task.IsFinished())
+                    continue;
 
-                    yield return ie.Current;
-                    task.Status = ie.Current;
+                var ie = task.Component.TaskUpdateEnumerator(agent);
+                ie.MoveNext();
 
-                    // since it's ordered, if one thing fails the rest falls like a domino.
-                    if (ie.Current == HTNTaskStatus.Failed)
-                    {
-                        yield return HTNTaskStatus.Failed;
-                        yield break;
-                    }
-                } while (task.Status == HTNTaskStatus.Continuing);
+                task.Status = ie.Current;
+
+                if (ie.Current == HTNTaskStatus.Failed)
+                    yield return HTNTaskStatus.Failed;
+
+                break;
             }
 
-            yield return HTNTaskStatus.Completed;
+            if (Tasks.Any(q => q.IsRunning()))
+                yield return HTNTaskStatus.Continuing;
+            else yield return HTNTaskStatus.Completed;
         }
 
-        public void ResetPlan(HTNAgent agent)
+        public void ResetPlan()
         {
             Status = HTNTaskStatus.Waiting;
             foreach (var task in Tasks)
-            {
-                task.Component.TaskUpdateEnumerator(agent).Reset();
                 task.Status = HTNTaskStatus.Waiting;
-            }
         }
     }
 }

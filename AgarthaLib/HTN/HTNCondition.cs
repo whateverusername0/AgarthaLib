@@ -14,13 +14,4 @@ namespace AgarthaLib.HTN
         // meanwhile HTNTasks will have to write their own condition handlers.
         public abstract bool CheckCondition(HTNAgent agent);
     }
-
-    [Serializable] public class SerializedHTNConditionData
-    {
-        public HTNCondition Component;
-        public bool ConditionMet = false;
-
-        public SerializedHTNConditionData(HTNCondition condition)
-            => Component = condition;
-    }
 }
