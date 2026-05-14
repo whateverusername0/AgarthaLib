@@ -1,5 +1,4 @@
-﻿using AgarthaLib.EventSystem;
-using System;
+﻿using System;
 
 namespace AgarthaLib.Timing
 {
