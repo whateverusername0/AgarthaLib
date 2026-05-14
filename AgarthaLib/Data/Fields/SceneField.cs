@@ -14,12 +14,12 @@ namespace AgarthaLib.Data.Fields
         [SerializeField] private string _sceneName = "";
         public string Name => _sceneName;
 
-        // makes it work with the existing Unity methods (LoadLevel/LoadScene)
+        // makes it work with the existing Unity methods (LoadLevel / LoadScene)
         public static implicit operator string(SceneField sceneField)
             => sceneField.Name;
     }
 
-#if UNITY_EDITOR
+    #if UNITY_EDITOR
     [CustomPropertyDrawer(typeof(SceneField))]
     public class SceneFieldPropertyDrawer : PropertyDrawer
     {
@@ -44,5 +44,5 @@ namespace AgarthaLib.Data.Fields
             EditorGUI.EndProperty();
         }
     }
-#endif
+    #endif
 }
