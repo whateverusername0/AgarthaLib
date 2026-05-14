@@ -181,5 +181,12 @@ namespace AgarthaLib.Extensions
         }
 
         #endregion
+
+        #region Uncategorized
+
+        public static bool IsInLayerMask(this LayerMask lm, int layer)
+            => lm == (lm | (1 << layer));
+
+        #endregion
     }
 }

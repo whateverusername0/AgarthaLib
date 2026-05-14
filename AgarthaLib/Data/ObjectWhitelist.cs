@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AgarthaLib.Tags
+namespace AgarthaLib.Data
 {
-    [Serializable] public class TagWhitelist<T> where T : IComparable
+    [Serializable] public class ObjectWhitelist<T> where T : IComparable
     {
         public List<T> Whitelist = new();
         public List<T> Blacklist = new();
@@ -16,10 +16,10 @@ namespace AgarthaLib.Tags
             => Whitelist.Any(q => l.Contains(q));
 
         public bool IsBlacklistPass(T t)
-            => Blacklist.Any(q => t.Equals(q));
+            => !Blacklist.Any(q => t.Equals(q));
 
         public bool IsBlacklistPass(List<T> l)
-            => Blacklist.Any(q => l.Contains(q));
+            => !Blacklist.Any(q => l.Contains(q));
 
         public bool Pass(T t)
         {
