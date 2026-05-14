@@ -1,4 +1,5 @@
-﻿using AgarthaLib.MonoBehavior;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.MonoBehavior;
 using AgarthaLib.Timing;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,8 +23,8 @@ namespace AgarthaLib.Animation
 
         [SerializeField] protected TimeType TimeScale;
 
-        [SerializeField] private double _animTime = 0f;
-        [SerializeField] private int _currentFrame = 0;
+        [SerializeField, EditorReadOnly] private double _animationTime = 0f;
+        [SerializeField, EditorReadOnly] private int _currentFrame = 0;
 
         protected override void Update()
         {
@@ -32,7 +33,7 @@ namespace AgarthaLib.Animation
             if (TimeScale != TimeType.Normal && TimeScale != TimeType.Unscaled)
                 return;
 
-            _animTime += TimeScale == TimeType.Normal
+            _animationTime += TimeScale == TimeType.Normal
                 ? Time.deltaTime
                 : Time.unscaledDeltaTime;
 
@@ -44,7 +45,7 @@ namespace AgarthaLib.Animation
             if (TimeScale != TimeType.Late && TimeScale != TimeType.LateUnscaled)
                 return;
 
-            _animTime += TimeScale == TimeType.LateUnscaled
+            _animationTime += TimeScale == TimeType.LateUnscaled
                 ? Time.unscaledDeltaTime
                 : Time.deltaTime;
 
@@ -56,7 +57,7 @@ namespace AgarthaLib.Animation
             if (TimeScale != TimeType.Fixed && TimeScale != TimeType.FixedUnscaled)
                 return;
 
-            _animTime += TimeScale == TimeType.FixedUnscaled
+            _animationTime += TimeScale == TimeType.FixedUnscaled
                 ? Time.fixedUnscaledDeltaTime
                 : Time.fixedDeltaTime;
 
@@ -69,7 +70,10 @@ namespace AgarthaLib.Animation
             var currentAnimation = GetCurrentAnimation();
 
             if (currentAnimation == null && (queue == null || queue.Count == 0))
+            {
+                _animationTime = 0f;
                 return;
+            }
 
             if (currentAnimation == null)
                 SetCurrentAnimation(queue[0]);
@@ -85,9 +89,9 @@ namespace AgarthaLib.Animation
             SetFrame(frame);
             HandleFrame(_currentFrame);
 
-            if (_animTime >= 1f / anim.FPS)
+            if (_animationTime >= 1f / anim.FPS)
             {
-                _animTime = 0f;
+                _animationTime = 0f;
                 _currentFrame += 1;
 
                 if (_currentFrame >= anim.Frames.Count)
@@ -102,7 +106,7 @@ namespace AgarthaLib.Animation
         public virtual void ResetTime()
         {
             _currentFrame = 0;
-            _animTime = 0f;
+            _animationTime = 0f;
         }
 
         protected abstract void SetFrame(TFrame frame);

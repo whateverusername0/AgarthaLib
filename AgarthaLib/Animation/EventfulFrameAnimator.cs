@@ -22,7 +22,8 @@ namespace AgarthaLib.Animation
         protected override List<TAnim> GetQueue()
             => _queue.Select(q => q.Animation).ToList();
 
-        protected override TAnim GetCurrentAnimation() => CurrentAnimation.Animation;
+        protected override TAnim GetCurrentAnimation()
+            => CurrentAnimation != null ? CurrentAnimation.Animation : null;
         protected override void SetCurrentAnimation(TAnim value) { }
         protected override void Enqueue(TAnim anim) { }
         protected override void Enqueue(List<TAnim> anims) { }
