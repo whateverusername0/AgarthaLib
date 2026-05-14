@@ -46,13 +46,14 @@ namespace AgarthaLib.Collision.Handlers
             _lastRotation = Target.localRotation;
 
             SubscribeEvent<CollisionEnterEvent>(OnCollisionEnterEvent);
-            SubscribeEvent<Collision2DEnterEvent>(OnCollision2DEnterEvent);
+            SubscribeEvent<Collision2DEnterEvent>(OnCollisionEnterEvent);
             SubscribeEvent<CollisionExitEvent>(OnCollisionExitEvent);
-            SubscribeEvent<Collision2DExitEvent>(OnCollision2DExitEvent);
-            SubscribeEvent<RelayedEvent<CollisionEnterEvent>>(OnRelayedCollisionEnterEvent);
-            SubscribeEvent<RelayedEvent<Collision2DEnterEvent>>(OnRelayedCollision2DEnterEvent);
-            SubscribeEvent<RelayedEvent<CollisionExitEvent>>(OnRelayedCollisionExitEvent);
-            SubscribeEvent<RelayedEvent<Collision2DExitEvent>>(OnRelayedCollision2DExitEvent);
+            SubscribeEvent<Collision2DExitEvent>(OnCollisionExitEvent);
+
+            SubscribeEvent<RelayedEvent<CollisionEnterEvent>>(OnCollisionEnterEvent);
+            SubscribeEvent<RelayedEvent<Collision2DEnterEvent>>(OnCollisionEnterEvent);
+            SubscribeEvent<RelayedEvent<CollisionExitEvent>>(OnCollisionExitEvent);
+            SubscribeEvent<RelayedEvent<Collision2DExitEvent>>(OnCollisionExitEvent);
         }
 
         private void OnDrawGizmosSelected()
@@ -66,31 +67,8 @@ namespace AgarthaLib.Collision.Handlers
                 Gizmos.DrawRay(t.position + t.forward, Rotation * t.forward);
         }
 
-        private void OnCollisionEnterEvent(GameObject invoker, ref CollisionEnterEvent args)
-            => CollisionEnter();
-
-        private void OnCollision2DEnterEvent(GameObject invoker, ref Collision2DEnterEvent args)
-            => CollisionEnter();
-
-        private void OnCollisionExitEvent(GameObject invoker, ref CollisionExitEvent args)
-            => CollisionExit();
-
-        private void OnCollision2DExitEvent(GameObject invoker, ref Collision2DExitEvent args)
-            => CollisionExit();
-
-        private void OnRelayedCollisionEnterEvent(GameObject invoker, ref RelayedEvent<CollisionEnterEvent> args)
-            => CollisionEnter();
-
-        private void OnRelayedCollision2DEnterEvent(GameObject invoker, ref RelayedEvent<Collision2DEnterEvent> args)
-            => CollisionEnter();
-
-        private void OnRelayedCollisionExitEvent(GameObject invoker, ref RelayedEvent<CollisionExitEvent> args)
-            => CollisionExit();
-
-        private void OnRelayedCollision2DExitEvent(GameObject invoker, ref RelayedEvent<Collision2DExitEvent> args)
-            => CollisionExit();
-
-        private void CollisionEnter()
+        private void OnCollisionEnterEvent<T>(GameObject invoker, ref T args)
+            where T : class
         {
             if (_triggered) return;
             _triggered = true;
@@ -100,7 +78,8 @@ namespace AgarthaLib.Collision.Handlers
             Transform(Target, pos, rot, Duration, Ease, TransformType.Absolute);
         }
 
-        private void CollisionExit()
+        private void OnCollisionExitEvent<T>(GameObject invoker, ref T args)
+            where T : class
         {
             if (!_triggered || !RevertTrigger) return;
             _triggered = false;
