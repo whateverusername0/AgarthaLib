@@ -2,7 +2,7 @@ using AgarthaLib.Data.Serialization;
 using System;
 using UnityEngine;
 
-[Serializable] public abstract class SerializedProperty<T> : IJsonSerializable<T> where T : struct
+[Serializable] public abstract class SerializedProperty<T> : MonoBehaviour, IJsonSerializable<T>
 {
     [SerializeField] protected T _value;
     public virtual T Value
