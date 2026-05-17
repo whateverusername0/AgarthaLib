@@ -35,5 +35,8 @@ namespace AgarthaLib.Extensions
             var z = Mathf.Clamp(v.z, min.z, max.z);
             return new(x, y, z);
         }
+
+        public static Vector3 GetForwardFromEuler(this Vector3 v)
+            => new(Mathf.Cos(v.y) * Mathf.Cos(v.x), Mathf.Sin(v.y) * Mathf.Cos(v.x), Mathf.Sin(v.z));
     }
 }
