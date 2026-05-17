@@ -7,7 +7,7 @@ namespace AgarthaLib.Goodies.Portals
 {
     public static class PortalAwarePhysics
     {
-        public static bool RaycastPortalAware(Vector3 position, Vector3 direction, float distance, out List<RaycastHit> result, int mask = -1)
+        public static bool RaycastAll(Vector3 position, Vector3 direction, float distance, out List<RaycastHit> result, int mask = -1)
         {
             result = new();
             var rc = Physics.RaycastAll(position, direction, distance, mask);
@@ -24,7 +24,7 @@ namespace AgarthaLib.Goodies.Portals
                     // subtract the distance so that it won't go forever.
                     var dist = Mathf.Max(distance - Vector3.Distance(hit.collider.transform.position, position), 0);
 
-                    if (RaycastPortalAware(pos, dir, dist, out var newHits, mask))
+                    if (RaycastAll(pos, dir, dist, out var newHits, mask))
                         result.AddRange(newHits);
 
                     break;
@@ -66,7 +66,7 @@ namespace AgarthaLib.Goodies.Portals
             return true;
         }
 
-        public static bool OverlapHalfSphereUnoccluded(Vector3 position, Vector3 forward, float radius,
+        public static bool OverlapHemisphereUnoccluded(Vector3 position, Vector3 forward, float radius,
             out List<Collider> hits, Predicate<Collider> overlapCondition, int mask = -1)
         {
             hits = new();

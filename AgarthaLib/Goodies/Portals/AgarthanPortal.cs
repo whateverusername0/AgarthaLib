@@ -253,7 +253,7 @@ namespace AgarthaLib.Goodies.Portals
             Predicate<Collider> overlapPred =
                 (q) => q.transform == transform || !q.isTrigger || !q.HasComponent<AgarthanPortal>();
 
-            if (!PortalAwarePhysics.OverlapHalfSphereUnoccluded(transform.position, NormalVisible.forward, 50f, out var hits, overlapPred))
+            if (!PortalAwarePhysics.OverlapHemisphereUnoccluded(transform.position, NormalVisible.forward, 50f, out var hits, overlapPred))
                 return;
 
             var valid = hits.Where(q => q.HasComponent<AgarthanPortal>()).ToList();
