@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using AgarthaLib.Extensions;
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace AgarthaLib.Extensions.Systems
+namespace AgarthaLib.Goodies.Transforms
 {
     public static class MeshClonerSystem
     {
