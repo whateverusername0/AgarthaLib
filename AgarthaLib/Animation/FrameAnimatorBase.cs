@@ -23,8 +23,8 @@ namespace AgarthaLib.Animation
 
         [SerializeField] protected TimeType TimeScale;
 
-        [SerializeField, EditorReadOnly] private double _animationTime = 0f;
-        [SerializeField, EditorReadOnly] private int _currentFrame = 0;
+        [SerializeField, EditorReadOnly] protected double _animationTime = 0f;
+        [SerializeField, EditorReadOnly] protected int _currentFrame = 0;
 
         protected override void Update()
         {
@@ -83,16 +83,17 @@ namespace AgarthaLib.Animation
 
         protected virtual void Cycle(TAnim anim)
         {
-            if (anim == null) return;
+            if (anim == null || anim.Frames.Count == 0)
+                return;
 
             var frame = anim.Frames[_currentFrame];
             SetFrame(frame);
-            HandleFrame(_currentFrame);
 
             if (_animationTime >= 1f / anim.FPS)
             {
                 _animationTime = 0f;
                 _currentFrame += 1;
+                HandleFrame(_currentFrame);
 
                 if (_currentFrame >= anim.Frames.Count)
                 {
