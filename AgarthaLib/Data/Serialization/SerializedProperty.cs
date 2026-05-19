@@ -11,9 +11,6 @@ using UnityEngine;
         set { _value = value; }
     }
 
-    public SerializedProperty(T value)
-        => _value = value;
-
     public static implicit operator T(SerializedProperty<T> @this)
         => @this.Value;
 

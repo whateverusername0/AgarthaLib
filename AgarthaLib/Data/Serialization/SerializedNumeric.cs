@@ -17,10 +17,8 @@ namespace AgarthaLib.Data.Serialization
             set => _value = Clamp(value);
         }
 
-        protected SerializedNumeric(T value) : base(value) { }
-
         public static implicit operator T(SerializedNumeric<T> @this)
-        => @this.Value;
+            => @this.Value;
 
         public T Clamp(T value)
         {
