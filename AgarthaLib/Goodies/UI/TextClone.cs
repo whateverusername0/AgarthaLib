@@ -1,10 +1,11 @@
 ﻿using AgarthaLib.Attributes;
 using AgarthaLib.MonoBehavior;
 using TMPro;
+using UnityEngine;
 
 namespace AgarthaLib.Goodies.UI
 {
-    public class UITextMirror : AgarthanBehaviour
+    [ExecuteInEditMode] public class TextClone : AgarthanBehaviour
     {
         [ValidateNull] public TMP_Text Original;
         public TMP_Text Copy;
@@ -12,6 +13,7 @@ namespace AgarthaLib.Goodies.UI
         protected override void Update()
         {
             Copy.text = Original.text;
+            Copy.alpha = Original.alpha;
         }
     }
 }
