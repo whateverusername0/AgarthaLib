@@ -16,6 +16,13 @@ namespace AgarthaLib.Extensions
             else UnityEngine.Object.DestroyImmediate(obj);
         }
 
+        public static bool TryFindObjectOfType<T>(this UnityEngine.Object @object, out T @out)
+            where T : UnityEngine.Object
+        {
+            @out = UnityEngine.Object.FindObjectOfType<T>();
+            return @out != null;
+        }
+
         #endregion
 
         #region Components

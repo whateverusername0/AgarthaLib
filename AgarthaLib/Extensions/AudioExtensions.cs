@@ -52,7 +52,15 @@ namespace AgarthaLib.Extensions
         {
             ass.minDistance = minDistance;
             ass.maxDistance = maxDistance;
-            ass.spatialBlend = 1;
+            ass.spatialBlend = 1f;
+            return ass;
+        }
+
+        public static AudioSource Pvs(this AudioSource ass, Vector3 position)
+        {
+            var go = ass.gameObject;
+            go.transform.position = position;
+            ass.spatialBlend = 1f;
             return ass;
         }
     }
