@@ -9,12 +9,14 @@ namespace AgarthaLib.Collision.Handlers
     {
         // TODO FIX EVENT RELAYING WHEN IT SHOULDNT
 
-        // i'll just assume it's never null
         public CollisionEventLink Link;
         [EditorReadOnly] public int Contacts = 0;
 
-        public bool CollidingLocal => Contacts > 0;
-        public bool CollidingGlobal => CollidingLocal || Link.CollidingLocal;
+        public bool CollidingLocal
+            => Contacts > 0;
+
+        public bool CollidingGlobal
+            => CollidingLocal || (Link != null && Link.CollidingLocal);
 
         [Header("Editor")]
         [SerializeField, EditorReadOnly] private bool _collidingLocal;
@@ -85,7 +87,10 @@ namespace AgarthaLib.Collision.Handlers
 
         public void Relay<T>(GameObject i, ref T a) where T : class
         {
-            if (Link != null) RelayEvent(Link.gameObject, ref a);
+            if (Link == null)
+                return;
+
+            RelayEvent(Link.gameObject, ref a);
         }
     }
 }

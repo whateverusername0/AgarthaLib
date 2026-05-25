@@ -42,7 +42,6 @@ namespace AgarthaLib.Goodies.Portals
         public Texture FallbackDepthTexture;
         public bool InfiniteDepth = true;
         public int TrueDepth = 2;
-        public int MaxDepth = 4;
 
         [Header("Debug")]
         [NonSerialized] public Vector4 VectorPlane;
@@ -115,6 +114,9 @@ namespace AgarthaLib.Goodies.Portals
         {
             propagate = propagate ? propagate : cam.targetTexture;
 
+            if (LinkedPortal == null)
+                return;
+
             var virtualPosition = TransformPosition(pos);
             var virtualRotation = TransformRotation(rot);
 
@@ -130,20 +132,17 @@ namespace AgarthaLib.Goodies.Portals
             {
                 foreach (var visiblePortal in LinkedPortal.VisiblePortals)
                 {
-                    if (!visiblePortal.MeshRenderer.IsVisibleFrom(cam))
+                    if (visiblePortal == null
+                    || !visiblePortal.MeshRenderer.IsVisibleFrom(cam))
                         continue;
 
                     visiblePortal.RecursiveRender(virtualPosition, virtualRotation, cam, depth + 1, maxDepth, propagate);
                 }
             }
-            else if (InfiniteDepth && depth < MaxDepth)
-            {
-                // todo infinite
-                return;
-            }
             else
             {
-                MeshRenderer.material.mainTexture = FallbackDepthTexture;
+                if (FallbackDepthTexture != null)
+                    MeshRenderer.material.mainTexture = FallbackDepthTexture;
                 return;
             }
 
@@ -168,7 +167,7 @@ namespace AgarthaLib.Goodies.Portals
         {
             base.LateFixedUpdate();
 
-            if (!CanPassThrough)
+            if (LinkedPortal == null || !CanPassThrough)
                 return;
 
             _objectRemovalQueue.Clear();

@@ -204,14 +204,15 @@ MonoBehaviour:
   VelocityOverride: 0
   _collidingObjects: []
   _objectRemovalQueue: []
+  RenderingEnabled: 1
   Camera: {fileID: 991110844190945161}
   _renderTexture: {fileID: 0}
   MeshRenderer: {fileID: 480999509526661816}
   FallbackDepthTexture: {fileID: 10309, guid: 0000000000000000f000000000000000, type: 0}
-  InfiniteDepth: 1
+  InfiniteDepth: 0
   TrueDepth: 2
   MaxDepth: 8
-  _isBeingRendered: 0
+  _shouldRender: 0
 --- !u!33 &5577813692949354594
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -295,3 +296,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a03cc945d3268884fa449bb5043d4332, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _collisionEnter:
+    m_PersistentCalls:
+      m_Calls: []
+  _collisionStay:
+    m_PersistentCalls:
+      m_Calls: []
+  _collisionExit:
+    m_PersistentCalls:
+      m_Calls: []
