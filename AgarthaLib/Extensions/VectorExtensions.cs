@@ -38,5 +38,13 @@ namespace AgarthaLib.Extensions
 
         public static Vector3 GetForwardFromEuler(this Vector3 v)
             => Quaternion.Euler(v) * Vector3.forward;
+
+        public static Vector3 Lerp(this Vector3 a, Vector3 b, float t, float threshold)
+        {
+            var lerp = Vector3.Lerp(a, b, t);
+            if (Vector3.Distance(lerp, b) <= threshold)
+                return b;
+            return lerp;
+        }
     }
 }
