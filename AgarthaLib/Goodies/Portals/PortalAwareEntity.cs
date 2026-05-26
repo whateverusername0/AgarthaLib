@@ -5,13 +5,12 @@ using UnityEngine;
 namespace AgarthaLib.Goodies.Portals
 {
     /// <summary>
-    ///     An entity that is supposed to be aware that a portal exists.
+    ///     An entity that is supposed to be aware of a portal.
     ///     Modifies it's rotation accordingly to keep it on it's feet.
     /// </summary>
     public class PortalAwareEntity : AgarthanBehaviour
     {
         [ValidateNull] public Rigidbody RB;
-        [ValidateNull] public CharacterController CC;
         public Transform Pivot;
 
         [Header("Rotation")]
@@ -33,22 +32,29 @@ namespace AgarthaLib.Goodies.Portals
             if (RotateAutomatically)
             {
                 var t = Pivot ? Pivot : transform;
-                TargetRotation = Quaternion.Lerp(TargetRotation, GetWorldDirection(), Time.deltaTime * RotationSpeed);
+                var trot = Quaternion.Slerp(TargetRotation, GetUp(t), Time.deltaTime * RotationSpeed);
+
+                TargetRotation = trot;
                 var tangles = TargetRotation.eulerAngles;
                 t.eulerAngles = new(tangles.x, t.eulerAngles.y, tangles.z);
             }
         }
 
         // TODO gravity
-        public Quaternion GetWorldDirection()
-            => Quaternion.LookRotation(Vector3.forward, Vector3.up);
+        public Quaternion GetUp(Transform t)
+        {
+            var plane = Vector3.ProjectOnPlane(t.forward, Vector3.up);
+            if (plane == Vector3.zero)
+                plane = t.forward;
+            return Quaternion.LookRotation(plane, Vector3.up);
+        }
 
         private void OnPortalTeleported(GameObject invoker, ref PortalTeleportedEvent args)
         {
             var t = Pivot ? Pivot : transform;
 
             // look up again.
-            TargetRotation = Quaternion.LookRotation(t.forward, Vector3.up);
+            TargetRotation = args.NewRotation;
 
             if (RB)
             {
@@ -63,11 +69,8 @@ namespace AgarthaLib.Goodies.Portals
                 }
             }
 
-            if (CC)
-            {
-                Physics.SyncTransforms();
-                // CharacterController controls velocity in their own logic.
-            }
+            Physics.SyncTransforms();
+            // charactercontroller go
         }
     }
 }
