@@ -2,18 +2,20 @@
 using AgarthaLib.Collision;
 using AgarthaLib.EventSystem.StaticDispatchers;
 using AgarthaLib.Extensions;
-using AgarthaLib.MonoBehavior;
+using AgarthaLib.Goodies.Pause;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace AgarthaLib.Goodies.Portals
 {
-    public class AgarthanPortal : AgarthanBehaviour
+    public class AgarthanPortal : PausedBehavior
     {
         private Camera _mainCamera => Camera.main;
 
+        [Header("Properties")]
         public AgarthanPortal LinkedPortal;
         public Transform NormalVisible;
         public Transform NormalInvisible;
@@ -36,12 +38,12 @@ namespace AgarthaLib.Goodies.Portals
 
         [Header("Rendering")]
         public bool RenderingEnabled = true;
+        public int Depth = 2;
+        public Color DepthColorTint = Color.black;
         [ValidateNull(traverse: true)] public Camera Camera;
-        [SerializeField, EditorReadOnly] private RenderTexture _renderTexture;
         public Renderer MeshRenderer;
-        public Texture FallbackDepthTexture;
-        public bool InfiniteDepth = true;
-        public int TrueDepth = 2;
+        [SerializeField, EditorReadOnly] private RenderTexture _renderTexture;
+        [SerializeField, EditorReadOnly] private Material _material;
 
         [Header("Debug")]
         [NonSerialized] public Vector4 VectorPlane;
@@ -70,97 +72,37 @@ namespace AgarthaLib.Goodies.Portals
             ResolveDependencies(forced: true);
         }
 
-        private void ResolveDependencies(bool forced = false)
+        private void OnCollisionEnterEvent(GameObject invoker, ref CollisionEnterEvent args)
         {
-            if (_renderTexture == null || forced)
-            {
-                if (_renderTexture != null)
-                {
-                    _renderTexture.Release();
-                    _renderTexture.DiscardContents();
-                }
+            var other = args.Other.transform.root;
+            var compRegistry = other.GetComponents<Component>();
+            // check if it has any valid components for it to pass through.
+            if (compRegistry.Where(q => PassthroughTypes.Any(w => q.GetType() == w)).Count() == 0)
+                return;
 
-                _renderTexture = new(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32);
-                _renderTexture.name = this.name;
-                _renderTexture.Create();
-            }
-            Camera.targetTexture = _renderTexture;
-            MeshRenderer.sharedMaterial.mainTexture = _renderTexture;
+            // entering the portal from behind - don't teleport, let the entity pass
+            if (GetDotProduct(other.position) < 0f)
+                return;
 
-            var plane = new Plane(NormalVisible.forward, transform.position);
-            VectorPlane = new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance);
+            if (!_collidingObjects.Contains(other))
+                _collidingObjects.Add(other);
         }
 
-        private void OnDestroy()
+        private void OnCollisionExitEvent(GameObject invoker, ref CollisionExitEvent args)
         {
-            if (_renderTexture != null)
-            {
-                _renderTexture.Release();
-                Destroy(_renderTexture);
-            }
+            var other = args.Other.transform.root;
+            if (_collidingObjects.Contains(other))
+                _collidingObjects.Remove(other);
         }
 
-        private void LateUpdate()
+        protected override void UnpausedLateUpdate()
         {
             _shouldRender = RenderingEnabled && IsBeingRendered;
             if (!_shouldRender)
                 return;
 
             var mc = _mainCamera.transform;
-            RecursiveRender(mc.position, mc.rotation, Camera, 0, TrueDepth);
-        }
-
-        public void RecursiveRender(Vector3 pos, Quaternion rot, Camera cam, int depth, int maxDepth, RenderTexture propagate = null)
-        {
-            propagate = propagate ? propagate : cam.targetTexture;
-
-            if (LinkedPortal == null)
-                return;
-
-            var virtualPosition = TransformPosition(pos);
-            var virtualRotation = TransformRotation(rot);
-
-            if (LinkedPortal.VisiblePortals.Count <= 0)
-            {
-                RenderPortalCamera(cam, virtualPosition, virtualRotation);
-                MeshRenderer.material.mainTexture = _renderTexture;
-                return;
-            }
-
-            // Recursion check
-            if (depth < maxDepth)
-            {
-                foreach (var visiblePortal in LinkedPortal.VisiblePortals)
-                {
-                    if (visiblePortal == null
-                    || !visiblePortal.MeshRenderer.IsVisibleFrom(cam))
-                        continue;
-
-                    visiblePortal.RecursiveRender(virtualPosition, virtualRotation, cam, depth + 1, maxDepth, propagate);
-                }
-            }
-            else
-            {
-                if (FallbackDepthTexture != null)
-                    MeshRenderer.material.mainTexture = FallbackDepthTexture;
-                return;
-            }
-
-            // Render everything after recursion
-            RenderPortalCamera(cam, virtualPosition, virtualRotation);
-            MeshRenderer.material.mainTexture = _renderTexture;
-        }
-
-        public void RenderPortalCamera(Camera cam, Vector3 position, Quaternion rotation)
-        {
-            cam.transform.SetPositionAndRotation(position, rotation);
-
-            var clip = Matrix4x4.Transpose(Matrix4x4.Inverse(cam.worldToCameraMatrix)) * LinkedPortal.VectorPlane;
-            var obliqueProjectionMatrix = cam.CalculateObliqueMatrix(clip);
-            cam.projectionMatrix = obliqueProjectionMatrix;
-            cam.targetTexture = _renderTexture;
-
-            cam.Render();
+            RecursiveRender(mc.position, mc.rotation, Camera, 0, Depth);
         }
 
         protected override void LateFixedUpdate()
@@ -198,6 +140,15 @@ namespace AgarthaLib.Goodies.Portals
                 _collidingObjects.Remove(item);
         }
 
+        private void OnDestroy()
+        {
+            if (_renderTexture != null)
+            {
+                _renderTexture.Release();
+                Destroy(_renderTexture);
+            }
+        }
+
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.blue;
@@ -224,30 +175,8 @@ namespace AgarthaLib.Goodies.Portals
                 Gizmos.DrawLine(transform.position, visible.transform.position);
         }
 
-        private void OnCollisionEnterEvent(GameObject invoker, ref CollisionEnterEvent args)
-        {
-            var other = args.Other.transform.root;
-            var compRegistry = other.GetComponents<Component>();
-            // check if it has any valid components for it to pass through.
-            if (compRegistry.Where(q => PassthroughTypes.Any(w => q.GetType() == w)).Count() == 0)
-                return;
-
-            // entering the portal from behind - don't teleport, let the entity pass
-            if (GetDotProduct(other.position) < 0f)
-                return;
-
-            if (!_collidingObjects.Contains(other))
-                _collidingObjects.Add(other);
-        }
-
-        private void OnCollisionExitEvent(GameObject invoker, ref CollisionExitEvent args)
-        {
-            var other = args.Other.transform.root;
-            if (_collidingObjects.Contains(other))
-                _collidingObjects.Remove(other);
-        }
-
-        [ContextMenu("Resolve visible portals")] public void ResolveVisiblePortals()
+        [ContextMenu("Resolve visible portals")]
+        public void ResolveVisiblePortals()
         {
             Predicate<Collider> overlapPred =
                 (q) => q.transform == transform || !q.isTrigger || !q.HasComponent<AgarthanPortal>();
@@ -261,6 +190,87 @@ namespace AgarthaLib.Goodies.Portals
             // EDIT: the case is real.
             VisiblePortals.Remove(this);
         }
+
+        #region Logic
+
+        private void ResolveDependencies(bool forced = false)
+        {
+            if (_renderTexture == null || forced)
+            {
+                if (_renderTexture != null)
+                {
+                    _renderTexture.Release();
+                    _renderTexture.DiscardContents();
+                }
+
+                _renderTexture = new(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32);
+                _renderTexture.name = this.name;
+                _renderTexture.Create();
+            }
+
+            Camera.targetTexture = _renderTexture;
+            Camera.farClipPlane = _mainCamera.farClipPlane;
+
+            _material = MeshRenderer.material;
+            _material.mainTexture = _renderTexture;
+
+            var plane = new Plane(NormalVisible.forward, transform.position);
+            VectorPlane = new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance);
+        }
+
+        public void RecursiveRender(Vector3 pos, Quaternion rot, Camera cam, int depth, int maxDepth)
+        {
+            if (LinkedPortal == null)
+                return;
+
+            var virtualPosition = TransformPosition(pos);
+            var virtualRotation = TransformRotation(rot);
+
+            if (LinkedPortal.VisiblePortals.Count <= 0)
+            {
+                RenderPortalCamera(cam, virtualPosition, virtualRotation);
+                _material.mainTexture = _renderTexture;
+                return;
+            }
+
+            if (depth >= maxDepth)
+                return;
+
+            foreach (var visiblePortal in LinkedPortal.VisiblePortals)
+            {
+                if (visiblePortal == null
+                || !visiblePortal.MeshRenderer.IsVisibleFrom(cam))
+                    continue;
+
+                visiblePortal.RecursiveRender(virtualPosition, virtualRotation, cam, depth + 1, maxDepth);
+            }
+
+            // consider it the shallowest and render
+            RenderPortalCamera(cam, virtualPosition, virtualRotation);
+
+            _material.mainTexture = _renderTexture;
+            _material.color = DepthColorTint;
+
+            var d = (float)depth / (float)maxDepth;
+            var blend = _material.GetFloat("_Blend");
+            _material.SetFloat("_Blend", Mathf.Lerp(blend, d, Time.deltaTime * 3.5f));
+        }
+
+        public void RenderPortalCamera(Camera cam, Vector3 position, Quaternion rotation)
+        {
+            cam.transform.SetPositionAndRotation(position, rotation);
+
+            var clip = Matrix4x4.Transpose(Matrix4x4.Inverse(cam.worldToCameraMatrix)) * LinkedPortal.VectorPlane;
+            var opm = cam.CalculateObliqueMatrix(clip);
+            cam.projectionMatrix = opm;
+            cam.targetTexture = _renderTexture;
+
+            cam.Render();
+        }
+
+        #endregion
+
+        #region API
 
         public static Vector3 TransformPosition(AgarthanPortal a, AgarthanPortal b, Vector3 position)
             => b.NormalInvisible.TransformPoint(a.NormalVisible.InverseTransformPoint(position));
@@ -292,5 +302,7 @@ namespace AgarthaLib.Goodies.Portals
             var dot = Vector3.Dot(direction, NormalVisible.forward);
             return dot;
         }
+
+        #endregion
     }
 }

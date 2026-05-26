@@ -4,6 +4,7 @@ Shader "Screenspace/Texture"
 	{
 		_Color("Tint", Color) = (1, 1, 1, 1)
         _MainTex("Texture", 2D) = "white" {}
+		_Blend("Blend", Range(0, 1)) = 0
 	}
 	SubShader
 	{
@@ -24,7 +25,7 @@ Shader "Screenspace/Texture"
 			sampler2D _MainTex;
             float4 _MainTex_ST;
 			fixed4 _Color;
-
+			float _Blend;
 
 			struct appdata
 			{
@@ -54,10 +55,9 @@ Shader "Screenspace/Texture"
 			{
                 fragOut o;
                 float2 textureCoordinate = i.screenPosition.xy / i.screenPosition.w;
-                fixed4 col = tex2D(_MainTex, textureCoordinate);                
-                col *= _Color;
+				float4 tex = tex2D(_MainTex, textureCoordinate);
+                fixed4 col = lerp(tex, _Color, _Blend);
                 o.color = col;
-
                 return o;
             }
 
