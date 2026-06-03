@@ -1,5 +1,4 @@
 ﻿using AgarthaLib.Attributes;
-using AgarthaLib.Collision;
 using AgarthaLib.EventSystem.StaticDispatchers;
 using AgarthaLib.Extensions;
 using AgarthaLib.Goodies.Pause;
@@ -7,47 +6,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace AgarthaLib.Goodies.Portals
 {
-    public class AgarthanPortal : PausedBehavior
+    [Tooltip("A basic implementation of a PortalBase with dynamic rendering.")]
+    public class AgarthanPortal : PortalBase
     {
-        private Camera _mainCamera => Camera.main;
+        protected PauseManager _pause => PauseManager.Instance;
+        protected Camera _mainCamera => Camera.main;
 
-        [Header("Properties")]
-        public AgarthanPortal LinkedPortal;
-        public Transform NormalVisible;
-        public Transform NormalInvisible;
+        [ValidateNull(traverse: true)] public Camera Camera;
+        public Renderer MeshRenderer;
         [EditorReadOnly] public List<AgarthanPortal> VisiblePortals = new();
-
-        public Vector3 InwardsForward => NormalVisible.forward;
-        public Vector3 OutwardsForward => NormalInvisible.forward;
-
-        [Header("Collision")]
-        public bool CanPassThrough = true;
-        public float VelocityOverride = 1.5f;
-        public List<Type> PassthroughTypes = new()
-        {
-            typeof(Rigidbody),
-            typeof(Rigidbody2D),
-            typeof(CharacterController)
-        };
-        [SerializeField, EditorReadOnly] private List<Transform> _collidingObjects = new();
-        [SerializeField, EditorReadOnly] private List<Transform> _objectRemovalQueue = new();
 
         [Header("Rendering")]
         public bool RenderingEnabled = true;
+        public bool RenderWhilePaused = true;
         public int Depth = 2;
         public Color DepthColorTint = Color.black;
-        [ValidateNull(traverse: true)] public Camera Camera;
-        public Renderer MeshRenderer;
-        [SerializeField, EditorReadOnly] private RenderTexture _renderTexture;
-        [SerializeField, EditorReadOnly] private Material _material;
-
+        
         [Header("Debug")]
         [NonSerialized] public Vector4 VectorPlane;
-        [SerializeField, EditorReadOnly] private bool _shouldRender = false;
+        [SerializeField, EditorReadOnly] protected bool _shouldRender = false;
+        [SerializeField, EditorReadOnly] protected Material _material;
+
+        [SerializeField, EditorReadOnly] protected RenderTexture _renderTexture;
+        public RenderTexture RenderTexture => _renderTexture;
 
         public bool IsBeingRendered => MeshRenderer.isVisible
                 && MeshRenderer.IsVisibleFrom(_mainCamera);
@@ -61,42 +45,19 @@ namespace AgarthaLib.Goodies.Portals
             ResolveDependencies();
 
             SubscribeGlobalEvent<ResolutionChangedEvent>(OnResolutionChanged);
-
-            SubscribeEvent<CollisionEnterEvent>(OnCollisionEnterEvent);
-            SubscribeEvent<CollisionExitEvent>(OnCollisionExitEvent);
         }
 
-        private void OnResolutionChanged(ref ResolutionChangedEvent args)
+        protected virtual void OnResolutionChanged(ref ResolutionChangedEvent args)
         {
-            // change rt's resolution
-            ResolveDependencies(forced: true);
+            // changes rt's resolution
+            ResolveDependencies();
         }
 
-        private void OnCollisionEnterEvent(GameObject invoker, ref CollisionEnterEvent args)
+        protected virtual void LateUpdate()
         {
-            var other = args.Other.transform.root;
-            var compRegistry = other.GetComponents<Component>();
-            // check if it has any valid components for it to pass through.
-            if (compRegistry.Where(q => PassthroughTypes.Any(w => q.GetType() == w)).Count() == 0)
+            if (!RenderWhilePaused && _pause.Paused)
                 return;
 
-            // entering the portal from behind - don't teleport, let the entity pass
-            if (GetDotProduct(other.position) < 0f)
-                return;
-
-            if (!_collidingObjects.Contains(other))
-                _collidingObjects.Add(other);
-        }
-
-        private void OnCollisionExitEvent(GameObject invoker, ref CollisionExitEvent args)
-        {
-            var other = args.Other.transform.root;
-            if (_collidingObjects.Contains(other))
-                _collidingObjects.Remove(other);
-        }
-
-        protected override void UnpausedLateUpdate()
-        {
             _shouldRender = RenderingEnabled && IsBeingRendered;
             if (!_shouldRender)
                 return;
@@ -105,42 +66,7 @@ namespace AgarthaLib.Goodies.Portals
             RecursiveRender(mc.position, mc.rotation, Camera, 0, Depth);
         }
 
-        protected override void LateFixedUpdate()
-        {
-            base.LateFixedUpdate();
-
-            if (LinkedPortal == null || !CanPassThrough)
-                return;
-
-            _objectRemovalQueue.Clear();
-            foreach (var item in _collidingObjects)
-            {
-                if (item == null)
-                {
-                    _objectRemovalQueue.Add(item);
-                    continue;
-                }
-
-                // If the dot product is more than 0
-                // that means that the portal-to-object direction
-                // and the visible normal direction is on the same side
-                if (GetDotProduct(item.position) > 0)
-                    continue;
-
-                var newPos = TransformPosition(item.position);
-                var newRot = TransformRotation(item.rotation);
-                item.SetPositionAndRotation(newPos, newRot);
-
-                RaiseEvent<PortalTeleportedEvent>(item.gameObject, new(this, LinkedPortal, newPos, newRot));
-
-                _objectRemovalQueue.Add(item);
-            }
-
-            foreach (var item in _objectRemovalQueue)
-                _collidingObjects.Remove(item);
-        }
-
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
             if (_renderTexture != null)
             {
@@ -149,23 +75,9 @@ namespace AgarthaLib.Goodies.Portals
             }
         }
 
-        private void OnDrawGizmos()
+        protected virtual void OnDrawGizmosSelected()
         {
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(NormalVisible.position, NormalVisible.position + NormalVisible.forward);
-            Gizmos.DrawLine(NormalVisible.position, NormalVisible.position + NormalVisible.up);
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(NormalInvisible.position, NormalInvisible.position + NormalInvisible.forward);
-            Gizmos.DrawLine(NormalInvisible.position, NormalInvisible.position + NormalInvisible.up);
-
-            Gizmos.color = Color.yellow;
-            if (LinkedPortal != null && LinkedPortal != this)
-                Gizmos.DrawLine(transform.position, LinkedPortal.transform.position);
-        }
-
-        private void OnDrawGizmosSelected()
-        {
+            // draws visible portals
             Gizmos.color = Color.green;
 
             if (VisiblePortals.Count == 0)
@@ -191,22 +103,17 @@ namespace AgarthaLib.Goodies.Portals
             VisiblePortals.Remove(this);
         }
 
-        #region Logic
-
-        private void ResolveDependencies(bool forced = false)
+        protected virtual void ResolveDependencies()
         {
-            if (_renderTexture == null || forced)
+            if (_renderTexture != null)
             {
-                if (_renderTexture != null)
-                {
-                    _renderTexture.Release();
-                    _renderTexture.DiscardContents();
-                }
-
-                _renderTexture = new(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32);
-                _renderTexture.name = this.name;
-                _renderTexture.Create();
+                _renderTexture.Release();
+                _renderTexture.DiscardContents();
             }
+
+            _renderTexture = new(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32);
+            _renderTexture.name = this.name;
+            _renderTexture.Create();
 
             Camera.targetTexture = _renderTexture;
             Camera.farClipPlane = _mainCamera.farClipPlane;
@@ -218,7 +125,7 @@ namespace AgarthaLib.Goodies.Portals
             VectorPlane = new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance);
         }
 
-        public void RecursiveRender(Vector3 pos, Quaternion rot, Camera cam, int depth, int maxDepth)
+        public virtual void RecursiveRender(Vector3 pos, Quaternion rot, Camera cam, int depth, int maxDepth)
         {
             if (LinkedPortal == null)
                 return;
@@ -226,17 +133,17 @@ namespace AgarthaLib.Goodies.Portals
             var virtualPosition = TransformPosition(pos);
             var virtualRotation = TransformRotation(rot);
 
-            if (LinkedPortal.VisiblePortals.Count <= 0)
+            if (LinkedPortal is not AgarthanPortal { } linked
+            || linked.VisiblePortals.Count <= 0)
             {
                 RenderPortalCamera(cam, virtualPosition, virtualRotation);
-                _material.mainTexture = _renderTexture;
                 return;
             }
 
             if (depth >= maxDepth)
                 return;
 
-            foreach (var visiblePortal in LinkedPortal.VisiblePortals)
+            foreach (var visiblePortal in linked.VisiblePortals)
             {
                 if (visiblePortal == null
                 || !visiblePortal.MeshRenderer.IsVisibleFrom(cam))
@@ -245,64 +152,28 @@ namespace AgarthaLib.Goodies.Portals
                 visiblePortal.RecursiveRender(virtualPosition, virtualRotation, cam, depth + 1, maxDepth);
             }
 
-            // consider it the shallowest and render
             RenderPortalCamera(cam, virtualPosition, virtualRotation);
 
-            _material.mainTexture = _renderTexture;
             _material.color = DepthColorTint;
 
             var d = (float)depth / (float)maxDepth;
             var blend = _material.GetFloat("_Blend");
-            _material.SetFloat("_Blend", Mathf.Lerp(blend, d, Time.deltaTime * 3.5f));
+            _material.SetFloat("_Blend", d);
         }
 
-        public void RenderPortalCamera(Camera cam, Vector3 position, Quaternion rotation)
+        public virtual void RenderPortalCamera(Camera cam, Vector3 position, Quaternion rotation)
         {
             cam.transform.SetPositionAndRotation(position, rotation);
 
-            var clip = Matrix4x4.Transpose(Matrix4x4.Inverse(cam.worldToCameraMatrix)) * LinkedPortal.VectorPlane;
-            var opm = cam.CalculateObliqueMatrix(clip);
-            cam.projectionMatrix = opm;
+            if (LinkedPortal is AgarthanPortal { } linked)
+            {
+                var clip = Matrix4x4.Transpose(Matrix4x4.Inverse(cam.worldToCameraMatrix)) * linked.VectorPlane;
+                var opm = cam.CalculateObliqueMatrix(clip);
+                cam.projectionMatrix = opm;
+            }
             cam.targetTexture = _renderTexture;
 
             cam.Render();
         }
-
-        #endregion
-
-        #region API
-
-        public static Vector3 TransformPosition(AgarthanPortal a, AgarthanPortal b, Vector3 position)
-            => b.NormalInvisible.TransformPoint(a.NormalVisible.InverseTransformPoint(position));
-
-        public Vector3 TransformPosition(Vector3 position)
-            => TransformPosition(this, LinkedPortal, position);
-
-        public static Vector3 TransformDirection(AgarthanPortal a, AgarthanPortal b, Vector3 direction)
-            => b.NormalInvisible.TransformDirection(a.NormalVisible.InverseTransformDirection(direction));
-
-        public Vector3 TransformDirection(Vector3 direction)
-            => TransformDirection(this, LinkedPortal, direction);
-
-        public Quaternion GetRotationDelta(AgarthanPortal a, AgarthanPortal b)
-            => b.NormalInvisible.rotation * Quaternion.Inverse(a.NormalVisible.rotation);
-
-        public Quaternion GetRotationDelta()
-            => GetRotationDelta(this, LinkedPortal);
-
-        public static Quaternion TransformRotation(AgarthanPortal a, AgarthanPortal b, Quaternion rotation)
-            => b.NormalInvisible.rotation * Quaternion.Inverse(a.NormalVisible.rotation) * rotation;
-
-        public Quaternion TransformRotation(Quaternion rotation)
-            => TransformRotation(this, LinkedPortal, rotation);
-
-        public float GetDotProduct(Vector3 position)
-        {
-            var direction = (position - transform.position).normalized;
-            var dot = Vector3.Dot(direction, NormalVisible.forward);
-            return dot;
-        }
-
-        #endregion
     }
 }

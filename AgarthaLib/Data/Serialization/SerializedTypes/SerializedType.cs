@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace AgarthaLib.Data.Serialization.SerializedTypes
 {
-    [Serializable] public class SerializableType
+    [Serializable] public class SerializedType
     {
         [SerializeField] private string _name;
         [SerializeField] private string _assemblyQualifiedName;
@@ -17,11 +17,15 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
 
         private Type GetSystemType()
         {
-            _systemType = Type.GetType(_assemblyQualifiedName);
-            return _systemType;
+            if (_systemType != null)
+                return _systemType;
+
+            var type = Type.GetType(_assemblyQualifiedName);
+            _systemType = type;
+            return type;
         }
 
-        public SerializableType(Type type)
+        public SerializedType(Type type)
         {
             _systemType = type;
             _name = type.Name;
@@ -30,12 +34,15 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
         }
 
         public override bool Equals(object obj)
-            => obj is SerializableType temp && this.Equals(temp);
+            => obj is SerializedType temp && this.Equals(temp);
 
-        public bool Equals(SerializableType @object)
+        public bool Equals(SerializedType @object)
             => @object.Type.Equals(Type);
 
-        public static bool operator ==(SerializableType a, SerializableType b)
+        public override int GetHashCode()
+            => base.GetHashCode();
+
+        public static bool operator ==(SerializedType a, SerializedType b)
         {
             // If both are null, or both are same instance, return true.
             if (object.ReferenceEquals(a, b))
@@ -48,10 +55,13 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
             return a.Equals(b);
         }
 
-        public static bool operator !=(SerializableType a, SerializableType b)
+        public static bool operator !=(SerializedType a, SerializedType b)
             => !(a == b);
 
-        public override int GetHashCode()
-            => base.GetHashCode();
+        public static implicit operator Type(SerializedType a)
+            => a.GetSystemType();
+
+        public static implicit operator SerializedType(Type a)
+            => new(a);
     }
 }
