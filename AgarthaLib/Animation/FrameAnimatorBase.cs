@@ -18,6 +18,7 @@ namespace AgarthaLib.Animation
         where TFrame : Object
     {
         protected abstract List<TAnim> GetQueue();
+        protected abstract TAnim GetDefaultAnimation();
         protected abstract TAnim GetCurrentAnimation();
         protected abstract void SetCurrentAnimation(TAnim value);
 
@@ -68,15 +69,13 @@ namespace AgarthaLib.Animation
         {
             var queue = GetQueue();
             var currentAnimation = GetCurrentAnimation();
+            var defaultAnimation = GetDefaultAnimation();
 
-            if (currentAnimation == null && (queue == null || queue.Count == 0))
-            {
-                _animationTime = 0f;
-                return;
-            }
+            if (currentAnimation == defaultAnimation && queue != null && queue.Count > 0)
+                SetCurrentAnimation(queue[0]);
 
             if (currentAnimation == null)
-                SetCurrentAnimation(queue[0]);
+                SetCurrentAnimation(defaultAnimation);
 
             Cycle(currentAnimation);
         }
@@ -118,10 +117,12 @@ namespace AgarthaLib.Animation
         public virtual void MoveNext()
         {
             var queue = GetQueue();
+            var anim = GetCurrentAnimation();
+            if (anim == null) return;
 
             ClearPlayingAnimation();
-            if (queue.Count >= 1)
-                queue.RemoveAt(0);
+            if (queue.Contains(anim))
+                queue.Remove(anim);
         }
 
         protected abstract void Enqueue(TAnim anim);

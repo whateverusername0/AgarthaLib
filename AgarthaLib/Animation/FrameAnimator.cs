@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using AgarthaLib.Attributes;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AgarthaLib.Animation
@@ -12,10 +13,12 @@ namespace AgarthaLib.Animation
         where TFrame : Object
     {
         [SerializeField] protected List<TAnim> _queue = new();
-        [SerializeField] protected TAnim CurrentAnimation;
+        [SerializeField] protected TAnim DefaultAnimation;
+        [SerializeField, EditorReadOnly] protected TAnim CurrentAnimation;
 
         protected override List<TAnim> GetQueue() => _queue;
         protected override TAnim GetCurrentAnimation() => CurrentAnimation;
+        protected override TAnim GetDefaultAnimation() => DefaultAnimation;
         protected override void SetCurrentAnimation(TAnim value) => CurrentAnimation = value;
         protected override void HandleFrame(int frame) { }
         protected override void Enqueue(TAnim anim) { }

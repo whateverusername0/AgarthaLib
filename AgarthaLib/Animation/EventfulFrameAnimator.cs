@@ -17,18 +17,21 @@ namespace AgarthaLib.Animation
         where TFrame : Object
     {
         [SerializeField] protected List<TContainer> _queue = new();
+        [SerializeField] protected TContainer DefaultAnimation;
         [SerializeField] protected TContainer CurrentAnimation;
 
         protected override List<TAnim> GetQueue()
             => _queue.Select(q => q.Animation).ToList();
 
         // all of these empty methods below are exposed in public
-        protected override TAnim GetCurrentAnimation() => null; 
+        protected override TAnim GetCurrentAnimation() => null;
+        protected override TAnim GetDefaultAnimation() => null;
         protected override void SetCurrentAnimation(TAnim value) { }
         protected override void Enqueue(TAnim anim) { }
         protected override void Enqueue(List<TAnim> anims) { }
 
         public TContainer GetCurrent() => CurrentAnimation;
+        public TContainer GetDefault() => DefaultAnimation;
         public virtual void SetCurrent(TContainer value)
         {
             ResetTime();
@@ -54,18 +57,17 @@ namespace AgarthaLib.Animation
         protected override void Cycle()
         {
             var queue = _queue;
-            var container = GetCurrent();
+            var currentAnimation = GetCurrent();
+            var defaultAnimation = GetDefault();
 
-            if (container == null && (queue == null || queue.Count == 0))
+            if (currentAnimation == null)
             {
-                _animationTime = 0f;
-                return;
+                if (queue != null && queue.Count > 0)
+                    SetCurrent(queue[0]);
+                else SetCurrent(defaultAnimation);
             }
 
-            if (container == null)
-                SetCurrent(queue[0]);
-
-            Cycle(container);
+            Cycle(currentAnimation);
         }
 
         // pastes anim here because container's unnecessary atp
@@ -79,9 +81,13 @@ namespace AgarthaLib.Animation
 
         public override void MoveNext()
         {
+            var queue = _queue;
+            var anim = GetCurrent();
+            if (anim == null) return;
+
             ClearPlayingAnimation();
-            if (_queue.Count >= 1)
-                _queue.RemoveAt(0);
+            if (queue.Contains(anim))
+                queue.Remove(anim);
         }
 
         // actual frame handler.
