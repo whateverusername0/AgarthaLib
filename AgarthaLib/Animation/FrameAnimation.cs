@@ -12,6 +12,6 @@ namespace AgarthaLib.Animation
     {
         public List<TFrame> Frames = new();
         public int FPS = 12;
-        public bool Loop = true;
+        public bool Loop = false;
     }
 }
