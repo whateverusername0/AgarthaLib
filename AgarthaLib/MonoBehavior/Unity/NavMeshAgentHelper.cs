@@ -1,9 +1,8 @@
 ﻿using AgarthaLib.Attributes;
-using AgarthaLib.MonoBehavior;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace AgarthaLib.HTN
+namespace AgarthaLib.MonoBehavior.Unity
 {
     [RequireComponent(typeof(NavMeshAgent))]
     public class NavMeshAgentHelper : AgarthanBehaviour
