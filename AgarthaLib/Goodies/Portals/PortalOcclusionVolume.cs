@@ -44,7 +44,8 @@ namespace AgarthaLib.Goodies.Portals
             OccludedPortals.ForEach(q => q.RenderingEnabled = render);
         }
 
-        [ContextMenu("Resolve visible portals")] public void ResolvePortals()
+        [ContextMenu("Resolve visible portals")]
+        public void ResolvePortals()
         {
             OccludedPortals.Clear();
             var portals = FindObjectsByType<AgarthanPortal>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
