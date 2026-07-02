@@ -1,4 +1,5 @@
 ﻿using AgarthaLib.MonoBehavior;
+using AgarthaLib.Tilemaps.RuleTiles;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -148,7 +149,7 @@ namespace AgarthaLib.Tilemaps
         {
             return data == null || data.Tile == null
             || (data.Tile is Tile { } t && t.colliderType == Tile.ColliderType.None)
-            || (data.Tile is AgarthanRuleTile { } art && !art.ProvidesCollision);
+            || (data.Tile is AgarthanTileBase { } art && !art.ProvidesCollision);
         }
 
         public bool IsWalkable(Vector2Int position)

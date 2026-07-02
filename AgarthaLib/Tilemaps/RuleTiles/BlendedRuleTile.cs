@@ -5,15 +5,19 @@ using UnityEngine.Tilemaps;
 
 namespace AgarthaLib.Tilemaps.RuleTiles
 {
-    [CreateAssetMenu(menuName = "AgarthaLib / Grid / Tiles / Blended rule tile")]
+    [CreateAssetMenu(menuName = "AgarthaLib / Tilemaps / Blended rule tile")]
     public class BlendedRuleTile : RuleTile
     {
-        public List<string> Tags;
-
-        public ObjectWhitelist<string> Whitelist;
+        [Header("Blending")]
+        public bool EnableBlending = true;
+        public List<string> BlendingTags;
+        public ObjectWhitelist<string> TagWhitelist;
 
         public override bool RuleMatch(int neighbor, TileBase other)
         {
+            if (!EnableBlending)
+                return base.RuleMatch(neighbor, other);
+
             if (other is RuleOverrideTile)
                 other = (other as RuleOverrideTile).m_InstanceTile;
 
@@ -28,6 +32,6 @@ namespace AgarthaLib.Tilemaps.RuleTiles
         }
 
         public bool Pass(BlendedRuleTile b)
-            => Whitelist.Pass(b.Tags);
+            => TagWhitelist.Pass(b.BlendingTags);
     }
 }
