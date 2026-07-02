@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AgarthaLib.Extensions
+namespace AgarthaLib._2D
 {
     public static class Extensions2D
     {
