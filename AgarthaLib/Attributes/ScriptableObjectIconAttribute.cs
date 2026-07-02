@@ -1,28 +1,40 @@
 ﻿using System.Linq;
 using UnityEngine;
-using UnityEditor;
 using System;
+using UnityEngine.Tilemaps;
+using System.Reflection;
+using System.Collections.Generic;
+using AgarthaLib.Data;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace AgarthaLib.Attributes
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class ScriptableObjectIconAttribute : PropertyAttribute {}
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public class ScriptableObjectIconAttribute : PropertyAttribute
+    {
+        public ConstColor BackgroundColor { get; set; } = ConstColor.white;
 
-#if UNITY_EDITOR
+        public ScriptableObjectIconAttribute() { }
+        public ScriptableObjectIconAttribute(ConstColor backgroundColor)
+            => BackgroundColor = backgroundColor;
+    }
+
+    #if UNITY_EDITOR
+
     [ExecuteInEditMode, InitializeOnLoad]
     public class ScriptableObjectIconDrawer : Editor
     {
         private static bool _unityDeafaultOnNull;
         public static bool UnityDeafaultOnNull
         {
-            get
-            {
-                return _unityDeafaultOnNull;
-            }
+            get => _unityDeafaultOnNull;
             set
             {
-                Menu.SetChecked(MENU_NAME_DEFAULTNULL, value);
-                EditorPrefs.SetBool(MENU_NAME_DEFAULTNULL, value);
+                Menu.SetChecked(MN_DEFAULT_NULL, value);
+                EditorPrefs.SetBool(MN_DEFAULT_NULL, value);
                 _unityDeafaultOnNull = value;
             }
         }
@@ -30,10 +42,7 @@ namespace AgarthaLib.Attributes
         private static bool _disableIcons;
         public static bool DisableIcons
         {
-            get
-            {
-                return _disableIcons;
-            }
+            get => _disableIcons;
             set
             {
                 _disableIcons = value;
@@ -41,20 +50,19 @@ namespace AgarthaLib.Attributes
             }
         }
 
-        public static Color BackgroundColor = new(82f / 255f, 82f / 255f, 82f / 255f, 1f);
-        private static Texture2D _background;
+        public static Texture2D _background = new Texture2D(1, 1);
 
-        private const string MENU_NAME_DISABLE_ICONS = "Assets / Icons / Disable icons";
-        private const string MENU_NAME_DEFAULTNULL = "Assets / Icons / Unity default for none";
+        private const string MN_TOGGLE_ICONS = "Assets / Icons / Enable | disable icons";
+        private const string MN_DEFAULT_NULL = "Assets / Icons / Toggle unity default for no icon";
 
 
-        [MenuItem(MENU_NAME_DISABLE_ICONS)]
+        [MenuItem(MN_TOGGLE_ICONS)]
         private static void ToggleShowIconsAction()
         {
             DisableIcons = !DisableIcons;
         }
 
-        [MenuItem(MENU_NAME_DEFAULTNULL)]
+        [MenuItem(MN_DEFAULT_NULL)]
         private static void ToggleDefOnNullAction()
         {
             UnityDeafaultOnNull = !UnityDeafaultOnNull;
@@ -62,8 +70,8 @@ namespace AgarthaLib.Attributes
 
         static ScriptableObjectIconDrawer()
         {
-            _disableIcons = EditorPrefs.GetBool(MENU_NAME_DISABLE_ICONS, false);
-            _unityDeafaultOnNull = EditorPrefs.GetBool(MENU_NAME_DEFAULTNULL, false);
+            _disableIcons = EditorPrefs.GetBool(MN_TOGGLE_ICONS, false);
+            _unityDeafaultOnNull = EditorPrefs.GetBool(MN_DEFAULT_NULL, false);
 
             EditorApplication.delayCall += () =>
             {
@@ -74,67 +82,83 @@ namespace AgarthaLib.Attributes
 
         static void SetStateDisabled(bool value)
         {
-            Menu.SetChecked(MENU_NAME_DISABLE_ICONS, value);
-            EditorPrefs.SetBool(MENU_NAME_DISABLE_ICONS, value);
+            Menu.SetChecked(MN_TOGGLE_ICONS, value);
+            EditorPrefs.SetBool(MN_TOGGLE_ICONS, value);
             if (value)
             {
-                EditorApplication.projectWindowItemOnGUI -= MyCallback();
+                EditorApplication.projectWindowItemOnGUI -= Callback();
             }
             else
             {
-                EditorApplication.projectWindowItemOnGUI -= MyCallback();
-                EditorApplication.projectWindowItemOnGUI += MyCallback();
+                EditorApplication.projectWindowItemOnGUI -= Callback();
+                EditorApplication.projectWindowItemOnGUI += Callback();
             }
         }
 
-        static EditorApplication.ProjectWindowItemCallback MyCallback()
+        static EditorApplication.ProjectWindowItemCallback Callback()
+            => new(DrawIcon);
+
+        static void DrawIcon(string guidString, Rect rect)
         {
-            EditorApplication.ProjectWindowItemCallback myCallback = new EditorApplication.ProjectWindowItemCallback(IconGUI);
-            return myCallback;
-        }
+            var guidReal = AssetDatabase.GUIDToAssetPath(guidString);
 
-        static void IconGUI(string s, Rect r)
-        {
-            var guid = AssetDatabase.GUIDToAssetPath(s);
-
-            _background = _background == null ? new Texture2D(32, 32) : _background;
-
-            var t = AssetDatabase.LoadAssetAtPath(guid, typeof(object)) as object;
-            if (t == null || t.GetType() == null) return;
-
-            Texture2D texture = null;
-
-            var atts = t.GetType().GetFields().Where(fi => ((fi == null) ? 0 : fi.GetCustomAttributes(typeof(ScriptableObjectIconAttribute), false).Count()) > 0);
-
-            if (atts != null && atts.Count() == 1)
-            {
-                var obj = atts.First().GetValue(t);
-                if (obj == null) return;
-
-                if (obj.GetType() == typeof(Sprite))
-                {
-                    var sprite = (Sprite) obj;
-                    if (sprite != null) texture = sprite.texture;
-                }
-
-                if (obj.GetType() == typeof(Texture2D))
-                    texture = (Texture2D) obj;
-            }
-            else return;
-
-            if (texture == null && _unityDeafaultOnNull)
+            if (AssetDatabase.LoadAssetAtPath(guidReal, typeof(object)) is not object asset
+            || asset.GetType() == null)
                 return;
 
-            Rect r2 = new(r);
-            r2.height -= 14;
-            GUI.DrawTexture(r2, _background, ScaleMode.StretchToFill, false);
-            GUI.DrawTexture(r2, _background, ScaleMode.StretchToFill, true, 0, BackgroundColor, 2, 3);
+            var dict = new Dictionary<PropertyInfo, ScriptableObjectIconAttribute>();
+            foreach (var propInfo in asset.GetType().GetProperties())
+            {
+                if (propInfo == null) continue;
 
-            r.yMin += 5;
-            r.height -= 22;
+                var att = propInfo.GetCustomAttribute(typeof(ScriptableObjectIconAttribute), false);
+                if (att == null) continue;
 
-            if (texture != null) GUI.DrawTexture(r, texture, ScaleMode.ScaleToFit);
+                dict.Add(propInfo, att as ScriptableObjectIconAttribute);
+            }
+
+            if (dict.Count <= 0)
+                return;
+
+            var kvp = dict.FirstOrDefault();
+            var @object = kvp.Key.GetValue(asset);
+            if (@object == null) return;
+
+            Texture2D texture = null;
+            switch (@object)
+            {
+                case Sprite sprite:
+                    if (sprite != null)
+                        texture = sprite.texture;
+                    break;
+
+                case Texture2D tex2d:
+                    texture = tex2d;
+                    break;
+
+                case Tile tile:
+                    if (tile != null && tile.sprite != null)
+                        texture = tile.sprite.texture;
+                    break;
+
+                case RuleTile ruleTile:
+                    if (ruleTile != null && ruleTile.m_DefaultSprite != null)
+                        texture = ruleTile.m_DefaultSprite.texture;
+                    break;
+
+                default: return;
+            }
+
+            if ((texture == null && _unityDeafaultOnNull)
+            || rect.width >= 640) // some absurd number to prevent it from going insane
+                return;
+
+            var color = kvp.Value.BackgroundColor.Resolve();
+            rect.height = rect.width;
+            GUI.DrawTexture(rect, _background, ScaleMode.StretchToFill, true, 0, color, 0, 0);
+            if (texture != null) GUI.DrawTexture(rect, texture, ScaleMode.StretchToFill);
         }
     }
-#endif
+
+    #endif
 }
