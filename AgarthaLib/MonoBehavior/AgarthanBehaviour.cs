@@ -143,7 +143,7 @@ namespace AgarthaLib.MonoBehavior
 
         protected virtual void Update()
         {
-            UpdateTimers();
+            //UpdateTimers(); // todo refactor or remove
         }
 
         private IEnumerator LateFixedUpdateEnumerator()
