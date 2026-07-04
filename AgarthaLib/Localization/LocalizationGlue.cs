@@ -1,11 +1,8 @@
 using AgarthaLib.MonoBehavior;
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
 
 namespace AgarthaLib.Localization
 {
-    public class LocalizationGlue : AgarthanBehaviour
+    public abstract class LocalizationGlue : AgarthanBehaviour
     {
         private LocalizationManager _loc => LocalizationManager.Instance;
 
@@ -17,22 +14,12 @@ namespace AgarthaLib.Localization
             UpdateLocale();
         }
 
-        public void UpdateLocale()
+        public virtual void UpdateLocale()
         {
             var locale = _loc.GetLoc(LocID);
-            foreach (var comp in GetComponents<Component>())
-                ResolveText(comp, locale);
+            SetText(locale);
         }
 
-        protected void ResolveText(Component comp, string locText)
-        {
-            switch (comp)
-            {
-                case Text text: text.text = locText; break;
-                case TMP_Text tmptext: tmptext.text = locText; break;
-                // todo add shit here
-                default: break;
-            }
-        }
+        protected abstract void SetText(string locale);
     }
 }

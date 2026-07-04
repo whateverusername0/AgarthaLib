@@ -1,0 +1,28 @@
+{
+    "name": "AgarthaLib",
+    "rootNamespace": "AgarthaLib",
+    "references": [
+        "Unity.TextMeshPro",
+        "Unity.2D.Tilemap.Extras"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.2d.tilemap.extras",
+            "expression": "",
+            "define": "USING_TILEMAP_EXTRAS"
+        },
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "",
+            "define": "USING_TMP"
+        }
+    ],
+    "noEngineReferences": false
+}

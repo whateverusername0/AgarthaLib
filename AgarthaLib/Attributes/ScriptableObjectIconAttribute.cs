@@ -1,13 +1,16 @@
 ﻿using System.Linq;
 using UnityEngine;
 using System;
-using UnityEngine.Tilemaps;
 using System.Reflection;
 using System.Collections.Generic;
 using AgarthaLib.Data;
 
 #if UNITY_EDITOR
 using UnityEditor;
+#endif
+
+#if USING_TILEMAP_EXTRAS
+using UnityEngine.Tilemaps;
 #endif
 
 namespace AgarthaLib.Attributes
@@ -141,10 +144,12 @@ namespace AgarthaLib.Attributes
                         texture = tile.sprite.texture;
                     break;
 
+                #if USING_TILEMAP_EXTRAS
                 case RuleTile ruleTile:
                     if (ruleTile != null && ruleTile.m_DefaultSprite != null)
                         texture = ruleTile.m_DefaultSprite.texture;
                     break;
+                #endif
 
                 default: return;
             }
@@ -160,5 +165,5 @@ namespace AgarthaLib.Attributes
         }
     }
 
-    #endif
-}
+#endif
+            }

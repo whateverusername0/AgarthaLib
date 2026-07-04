@@ -193,26 +193,44 @@ MonoBehaviour:
   m_GameObject: {fileID: 6982006176507526872}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf5f6a08438401b46835da57235d3aca, type: 3}
+  m_Script: {fileID: 11500000, guid: c893e25d732010a4dbc58b6ba330b603, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   LinkedPortal: {fileID: 0}
   NormalVisible: {fileID: 795673147809146218}
   NormalInvisible: {fileID: 5793136629317657601}
-  VisiblePortals: []
   CanPassThrough: 1
-  VelocityOverride: 0
+  VelocityOverride: 1.5
+  PassthroughTypes:
+  - _name: Rigidbody
+    _assemblyQualifiedName: UnityEngine.Rigidbody, UnityEngine.PhysicsModule, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    _assemblyName: UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - _name: Rigidbody2D
+    _assemblyQualifiedName: UnityEngine.Rigidbody2D, UnityEngine.Physics2DModule,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    _assemblyName: UnityEngine.Physics2DModule, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+  - _name: CharacterController
+    _assemblyQualifiedName: UnityEngine.CharacterController, UnityEngine.PhysicsModule,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    _assemblyName: UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - _name: NavMeshAgent
+    _assemblyQualifiedName: UnityEngine.AI.NavMeshAgent, UnityEngine.AIModule, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    _assemblyName: UnityEngine.AIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   _collidingObjects: []
   _objectRemovalQueue: []
-  RenderingEnabled: 1
   Camera: {fileID: 991110844190945161}
-  _renderTexture: {fileID: 0}
   MeshRenderer: {fileID: 480999509526661816}
-  FallbackDepthTexture: {fileID: 10309, guid: 0000000000000000f000000000000000, type: 0}
-  InfiniteDepth: 0
-  TrueDepth: 2
-  MaxDepth: 8
+  VisiblePortals: []
+  RenderingEnabled: 1
+  RenderWhilePaused: 1
+  Depth: 2
+  DepthColorTint: {r: 0, g: 0, b: 0, a: 1}
   _shouldRender: 0
+  _material: {fileID: 0}
+  _renderTexture: {fileID: 0}
 --- !u!33 &5577813692949354594
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -293,7 +311,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6982006176507526872}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a03cc945d3268884fa449bb5043d4332, type: 3}
+  m_Script: {fileID: 11500000, guid: d636da82d6251ee46afc9446b4d51881, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _collisionEnter:
