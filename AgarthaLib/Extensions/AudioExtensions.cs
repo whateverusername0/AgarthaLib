@@ -38,18 +38,24 @@ namespace AgarthaLib.Extensions
 
         public static AudioSource WithPitch(this AudioSource ass, float pitch)
         {
+            if (ass == null) return null;
+
             ass.pitch = pitch;
             return ass;
         }
 
         public static AudioSource WithVolume(this AudioSource ass, float volume)
         {
+            if (ass == null) return null;
+
             ass.volume = volume;
             return ass;
         }
 
         public static AudioSource WithRange(this AudioSource ass, float minDistance, float maxDistance)
         {
+            if (ass == null) return null;
+
             ass.minDistance = minDistance;
             ass.maxDistance = maxDistance;
             ass.spatialBlend = 1f;
@@ -58,6 +64,8 @@ namespace AgarthaLib.Extensions
 
         public static AudioSource Pvs(this AudioSource ass, Vector3 position)
         {
+            if (ass == null) return null;
+
             var go = ass.gameObject;
             go.transform.position = position;
             ass.spatialBlend = 1f;

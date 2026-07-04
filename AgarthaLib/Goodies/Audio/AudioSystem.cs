@@ -10,6 +10,8 @@ namespace AgarthaLib.Goodies.Audio
 
         public AudioSource PlayClip(AudioClip clip)
         {
+            if (clip == null) return null;
+
             var go = new GameObject(clip.name);
             var auds = go.AddComponent<AudioSource>();
             auds.clip = clip;
