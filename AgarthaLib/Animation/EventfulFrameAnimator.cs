@@ -60,12 +60,11 @@ namespace AgarthaLib.Animation
             var currentAnimation = GetCurrent();
             var defaultAnimation = GetDefault();
 
+            if (currentAnimation == defaultAnimation && queue != null && queue.Count > 0)
+                SetCurrent(queue[0]);
+
             if (currentAnimation == null)
-            {
-                if (queue != null && queue.Count > 0)
-                    SetCurrent(queue[0]);
-                else SetCurrent(defaultAnimation);
-            }
+                SetCurrent(defaultAnimation);
 
             Cycle(currentAnimation);
         }
