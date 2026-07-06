@@ -44,6 +44,14 @@ namespace AgarthaLib.Extensions
             return ass;
         }
 
+        public static AudioSource WithRandomPitch(this AudioSource ass, float min = .01f, float max = 2.99f)
+        {
+            if (ass == null) return null;
+
+            ass.pitch = Random.Range(min, max);
+            return ass;
+        }
+
         public static AudioSource WithVolume(this AudioSource ass, float volume)
         {
             if (ass == null) return null;
