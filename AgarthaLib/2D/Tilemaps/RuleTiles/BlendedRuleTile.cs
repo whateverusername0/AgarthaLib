@@ -11,16 +11,22 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
     {
         [Header("Blending")]
         public bool EnableBlending = true;
-        public List<string> BlendingTags;
-        public ObjectWhitelist<string> TagWhitelist;
+        public List<string> BlendingTags = new();
+        public ObjectWhitelist<string> TagWhitelist = new();
 
         public override bool RuleMatch(int neighbor, TileBase other)
         {
+            switch (other)
+            {
+                case RuleOverrideTile rot:
+                    other = rot.m_InstanceTile; break;
+                case AgarthanTileBase atb:
+                    other = atb.RuleTileReference; break;
+                default: break;
+            }
+
             if (!EnableBlending)
                 return base.RuleMatch(neighbor, other);
-
-            if (other is RuleOverrideTile)
-                other = (other as RuleOverrideTile).m_InstanceTile;
 
             switch (neighbor)
             {

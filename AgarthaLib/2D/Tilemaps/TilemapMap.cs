@@ -156,9 +156,9 @@ namespace AgarthaLib._2D.Tilemaps
             #if USING_TILEMAP_EXTRAS
             var noAgarthanCollision = data.Tile is AgarthanTileBase { } art && !art.ProvidesCollision;
             return isNull || noCollision || noAgarthanCollision;
-            #endif
-
+            #else
             return isNull || noCollision;
+            #endif
         }
 
         public bool IsWalkable(Vector2Int position)
