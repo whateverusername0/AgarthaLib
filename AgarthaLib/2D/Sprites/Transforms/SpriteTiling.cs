@@ -1,11 +1,12 @@
-﻿using AgarthaLib.Sprites.Effects;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.Goodies.Transforms;
 using UnityEngine;
 
 namespace AgarthaLib._2D.Sprites.Transforms
 {
-    public class SeamlessSpriteScroller : SeamlessTransformScroller
+    public class SpriteTiling : TransformTiling
     {
-        public SpriteRenderer Renderer;
+        [ValidateNull] public SpriteRenderer Renderer;
 
         public override Vector2? GetRect()
         {
