@@ -37,9 +37,12 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
         {
             Dictionary.Clear();
 
-            if (Data == null) return;
+            if (Data == null || Dictionary == null) return;
             foreach (var kvp in Data)
+            {
+                if (kvp.Key == null) continue;
                 Dictionary[kvp.Key] = kvp.Value;
+            }
         }
 
         #endregion

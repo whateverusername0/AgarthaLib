@@ -4,6 +4,8 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using AgarthaLib.Data;
+using UnityEngine.Tilemaps;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -26,7 +28,6 @@ namespace AgarthaLib.Attributes
     }
 
     #if UNITY_EDITOR
-
     [ExecuteInEditMode, InitializeOnLoad]
     public class ScriptableObjectIconDrawer : Editor
     {
@@ -53,7 +54,7 @@ namespace AgarthaLib.Attributes
             }
         }
 
-        public static Texture2D _background = new Texture2D(1, 1);
+        public static Texture2D _background = new(1, 1);
 
         private const string MN_TOGGLE_ICONS = "Assets / Icons / Enable | disable icons";
         private const string MN_DEFAULT_NULL = "Assets / Icons / Toggle unity default for no icon";
@@ -160,10 +161,13 @@ namespace AgarthaLib.Attributes
 
             var color = kvp.Value.BackgroundColor.Resolve();
             rect.height = rect.width;
-            GUI.DrawTexture(rect, _background, ScaleMode.StretchToFill, true, 0, color, 0, 0);
-            if (texture != null) GUI.DrawTexture(rect, texture, ScaleMode.StretchToFill);
+
+            if (_background != null)
+                GUI.DrawTexture(rect, _background, ScaleMode.StretchToFill, true, 0, color, 0, 0);
+
+            if (texture != null)
+                GUI.DrawTexture(rect, texture, ScaleMode.StretchToFill);
         }
     }
-
-#endif
-            }
+    #endif
+}

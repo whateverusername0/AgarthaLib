@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace AgarthaLib.Animation.Sprites.Images
 {
-    public class RawImageAnimator : FrameAnimator<SpriteAnimation, Sprite>
+    public class ImageAnimator : FrameAnimator<SpriteAnimation, Sprite>
     {
         public Image Renderer;
 

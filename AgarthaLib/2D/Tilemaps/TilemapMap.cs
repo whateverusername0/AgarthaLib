@@ -1,9 +1,12 @@
 ﻿using AgarthaLib.MonoBehavior;
-using AgarthaLib._2D.Tilemaps.RuleTiles;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+
+#if USING_TILEMAP_EXTRAS
+using AgarthaLib._2D.Tilemaps.RuleTiles;
+#endif
 
 namespace AgarthaLib._2D.Tilemaps
 {
@@ -147,9 +150,15 @@ namespace AgarthaLib._2D.Tilemaps
 
         public bool IsWalkable(MapTileData data)
         {
-            return data == null || data.Tile == null
-            || (data.Tile is Tile { } t && t.colliderType == Tile.ColliderType.None)
-            || (data.Tile is AgarthanTileBase { } art && !art.ProvidesCollision);
+            var isNull = data == null || data.Tile == null;
+            var noCollision = data.Tile is Tile t && t.colliderType == Tile.ColliderType.None;
+
+            #if USING_TILEMAP_EXTRAS
+            var noAgarthanCollision = data.Tile is AgarthanTileBase { } art && !art.ProvidesCollision;
+            return isNull || noCollision || noAgarthanCollision;
+            #endif
+
+            return isNull || noCollision;
         }
 
         public bool IsWalkable(Vector2Int position)
