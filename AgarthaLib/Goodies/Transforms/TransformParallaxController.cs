@@ -1,4 +1,5 @@
-﻿using AgarthaLib.MonoBehavior;
+﻿using AgarthaLib.Extensions;
+using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
 namespace AgarthaLib.Goodies.Transforms
@@ -16,15 +17,16 @@ namespace AgarthaLib.Goodies.Transforms
 
             Camera = Camera == null ? Camera.main : Camera;
 
-            Origin = transform.localPosition;
+            Origin = transform.position;
         }
 
         protected override void Update()
         {
             base.Update();
 
-            var pos = (Camera.transform.position - Origin) * (1f - Multiplier);
-            transform.localPosition = pos;
+            var cpos = Camera.transform.position;
+            var pos = (cpos - Origin) * (1f - Multiplier);
+            transform.position = pos;
         }
     }
 }

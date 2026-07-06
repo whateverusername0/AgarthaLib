@@ -12,6 +12,12 @@ namespace AgarthaLib.Goodies.Transforms
         public virtual Vector2? GetRect()
             => Rect;
 
+        public bool TryGetRect(out Vector2? rect)
+        {
+            rect = GetRect();
+            return rect.HasValue;
+        }
+
         [ContextMenu("Get Rect")]
         public virtual void SetRect()
         {
@@ -27,7 +33,10 @@ namespace AgarthaLib.Goodies.Transforms
             if (rect == null) return;
 
             var lpos = Origin + transform.localPosition;
-            lpos = new(lpos.x.Loop(rect.Value.x), lpos.y.Loop(rect.Value.y), transform.localPosition.z);
+            lpos = new(
+                lpos.x.RecursiveLoop(rect.Value.x),
+                lpos.y.RecursiveLoop(rect.Value.y),
+                transform.localPosition.z);
             transform.localPosition = lpos;
         }
 
