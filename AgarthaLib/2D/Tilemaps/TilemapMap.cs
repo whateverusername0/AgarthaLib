@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+
 #if USING_TILEMAP_EXTRAS
 using AgarthaLib._2D.Tilemaps.RuleTiles;
 #endif
@@ -19,8 +20,12 @@ namespace AgarthaLib._2D.Tilemaps
     public class TilemapMap : AgarthanBehaviour
     {
         [Header("Tilemap")]
-        public List<Tilemap> Layers;
-        public Tilemap Map;
+        public Grid Grid;
+        public List<Tilemap> Layers = new();
+        public Tilemap MergedMap;
+
+        public bool IsMerged => MergedMap != null;
+        public bool IsLayered => Layers != null && Layers.Count > 0;
 
         [Header("Bounds")]
         public BoundsInt Bounds;
@@ -30,14 +35,14 @@ namespace AgarthaLib._2D.Tilemaps
         {
             base.Start();
 
-            if (Map == null)
-            {
-                var mt = new GameObject(nameof(TilemapMap));
-                mt.transform.SetParent(this.transform, false);
-                Map = mt.AddComponent<Tilemap>();
-                var mtr = mt.AddComponent<TilemapRenderer>();
-                mtr.sortingOrder = -1;
-            }
+            if (DefineBoundsOnStart)
+                Bounds = GetMap(0).cellBounds;
+        }
+
+        [ContextMenu("Merge layers")]
+        private void MergeLayers()
+        {
+            MergedMap = MergedMap == null ? MakeTilemap("Merged Tilemap") : MergedMap;
 
             if (Layers != null && Layers.Count > 0)
             {
@@ -54,7 +59,7 @@ namespace AgarthaLib._2D.Tilemaps
 
         private void MergeLayer(Tilemap layer, int z = 0)
         {
-            if (Map == null) return;
+            if (MergedMap == null) return;
 
             foreach (var pos in layer.cellBounds.allPositionsWithin)
             {
@@ -62,8 +67,57 @@ namespace AgarthaLib._2D.Tilemaps
                     continue;
 
                 var newPos = new Vector3Int(pos.x, pos.y, z);
-                Map.SetTile(newPos, tile);
+                MergedMap.SetTile(newPos, tile);
             }
+        }
+
+        [ContextMenu("Split layers")]
+        private void SplitLayers()
+        {
+            if (MergedMap == null) return;
+
+            for (int i = MergedMap.cellBounds.zMin; i <= MergedMap.cellBounds.zMax; i++)
+                SplitLayer(i);
+
+            //this.SafeDestroy(MergedMap);
+        }
+
+        private void SplitLayer(int z = 0)
+        {
+            var tm = MakeTilemap("Split", z);
+            var tiles = GetAllPossibleTiles(z);
+            foreach (var tile in tiles)
+                tm.SetTile(tile.Position, tile.Tile);
+
+            Layers.Add(tm);
+        }
+
+        public Tilemap GetMap(int z)
+        {
+            if (MergedMap != null && Layers != null && Layers.Count > 0)
+            {
+                Debug.LogWarning("There can exist only one type of map! Preferring merged one instead.");
+                return MergedMap;
+            }
+
+            if (MergedMap != null)
+                return MergedMap;
+
+            if (Layers.Count >= z)
+                return Layers[z];
+            else throw new System.ArgumentOutOfRangeException("layer");
+            
+            //return null;
+        }
+
+        private Tilemap MakeTilemap(string name, int z = 0)
+        {
+            var gameObject = new GameObject($"{name}_{z}");
+            gameObject.transform.SetParent(this.transform, false);
+            var tm = gameObject.AddComponent<Tilemap>();
+            var renderer = gameObject.AddComponent<TilemapRenderer>();
+            renderer.sortingOrder = z - 1;
+            return tm;
         }
 
         protected void OnDrawGizmosSelected()
@@ -74,9 +128,10 @@ namespace AgarthaLib._2D.Tilemaps
 
         public MapTileData GetTile(Vector3Int position)
         {
-            var tile = Map.GetTile(position);
-            if (tile != null) return new MapTileData(Map, position, tile);
-            else return null;
+            var map = GetMap(position.z);
+            var tile = map.GetTile(position);
+            if (tile != null) return new MapTileData(map, position, tile);
+            return null;
         }
 
         public bool TryGetTile(Vector3Int position, out MapTileData tile)
@@ -87,13 +142,28 @@ namespace AgarthaLib._2D.Tilemaps
 
         public List<MapTileData> GetTiles(Vector2Int position)
         {
+            var map = GetMap(0);
             var list = new List<MapTileData>();
-            for (int i = Map.cellBounds.zMin; i <= Map.cellBounds.zMax; i++)
+
+            if (IsLayered)
             {
-                var pos = new Vector3Int(position.x, position.y, i);
-                var tile = GetTile(pos);
-                if (tile != null) list.Add(tile);
+                foreach (var layer in Layers)
+                {
+                    var pos = new Vector3Int(position.x, position.y, Layers.IndexOf(layer));
+                    var tile = GetTile(pos);
+                    if (tile != null) list.Add(tile);
+                }
             }
+            else if (IsMerged)
+            {
+                for (int i = map.cellBounds.zMin; i <= map.cellBounds.zMax; i++)
+                {
+                    var pos = new Vector3Int(position.x, position.y, i);
+                    var tile = GetTile(pos);
+                    if (tile != null) list.Add(tile);
+                }
+            }
+
             return list;
         }
 
@@ -110,16 +180,35 @@ namespace AgarthaLib._2D.Tilemaps
             if (existing != null) Destroy(existing.Tile);
             if (tile != null) tile = Instantiate(tile);
 
-            Map.SetTile(position, tile);
-            Map.RefreshTile(position);
+            if (IsLayered)
+            {
+                Layers[position.z].SetTile(position, tile);
+                Layers[position.z].RefreshTile(position);
+            }
+            else if (IsMerged)
+            {
+                MergedMap.SetTile(position, tile);
+                MergedMap.RefreshTile(position);
+            }
         }
 
         public List<MapTileData> GetTilesInRange(Vector2Int position, int range)
         {
             var list = new List<MapTileData>();
-            for (int x = position.x - range; x <= position.x + range; x++)
+
+            if (IsLayered)
+            {
+                for (int i = 0; i < Layers.Count; i++)
+                    list.AddRange(GetTilesInRange(new Vector3Int(position.x, position.y, i), range));
+            }
+            else if (IsMerged)
+            {
                 for (int y = position.y - range; y <= position.y + range; y++)
-                    list.AddRange(GetTiles(new Vector2Int(x, y)));
+                    for (int x = position.x - range; x <= position.x + range; x++)
+                        list.AddRange(GetTiles(new Vector2Int(x, y)));
+            }
+
+            list = list.Where(q => q != null).ToList();
             return list;
         }
 
@@ -128,16 +217,31 @@ namespace AgarthaLib._2D.Tilemaps
             .Where(q => new Vector2Int(q.Position.x, q.Position.y) != position)
             .ToList();
 
-        public List<MapTileData> GetAdjacentTiles(Vector3Int position)
-            => GetAdjacentTiles(new Vector2Int(position.x, position.y));
-
-        public List<MapTileData> GetAllPossibleTiles()
+        public List<MapTileData> GetTilesInRange(Vector3Int position, int range)
         {
             var list = new List<MapTileData>();
-            foreach (var pos in Map.cellBounds.allPositionsWithin)
+            for (int x = position.x - range; x <= position.x + range; x++)
+                for (int y = position.y - range; y <= position.y + range; y++)
+                    list.Add(GetTile(new Vector3Int(x, y, position.z)));
+
+            list = list.Where(q => q != null).ToList();
+            return list;
+        }
+
+        public List<MapTileData> GetAdjacentTiles(Vector3Int position, int range = 1)
+            => GetTilesInRange(position, range)
+            .Where(q => q.Position != position)
+            .ToList();
+
+        public List<MapTileData> GetAllPossibleTiles(int z = 0)
+        {
+            var map = GetMap(z);
+            var list = new List<MapTileData>();
+            foreach (var pos in map.cellBounds.allPositionsWithin)
             {
-                var tile = Map.GetTile(pos);
-                if (tile != null) list.Add(new MapTileData(Map, pos, tile));
+                if (pos.z != z) continue;
+                var tile = map.GetTile(pos);
+                if (tile != null) list.Add(new MapTileData(map, pos, tile));
             }
             return list;
         }
@@ -145,16 +249,16 @@ namespace AgarthaLib._2D.Tilemaps
         #region Extensions
 
         public Vector3Int WorldToCell(Vector3 position)
-            => Map.WorldToCell(position);
+            => Grid.WorldToCell(position);
 
         public Vector3 CellToWorld(Vector3Int position)
-            => Map.GetCellCenterWorld(position);
+            => Grid.GetCellCenterWorld(position);
 
         public Vector2Int WorldToCell(Vector2 position)
-            => (Vector2Int)Map.WorldToCell(position);
+            => (Vector2Int)Grid.WorldToCell(position);
 
         public Vector2 CellToWorld(Vector2Int position)
-            => Map.GetCellCenterWorld((Vector3Int)position);
+            => Grid.GetCellCenterWorld((Vector3Int)position);
 
         public bool IsWalkable(MapTileData data)
         {
