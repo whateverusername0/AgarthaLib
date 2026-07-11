@@ -42,6 +42,8 @@ namespace AgarthaLib._2D.Pathfinding
         public static List<Vector2Int> FindPath(TilemapMap map, Vector2Int start, Vector2Int end,
             Predicate<MapTileData> isWalkable, bool inclusive)
         {
+            if (start == end) return null; // lol
+
             var endTiles = map.GetTiles(end);
             if (inclusive ? endTiles.Any(q => !isWalkable(q)) : endTiles.All(q => !isWalkable(q)))
             {
@@ -138,11 +140,7 @@ namespace AgarthaLib._2D.Pathfinding
             var lastDelta = Vector2Int.zero;
             for (int i = 0; i < path.Count; i++)
             {
-                if (i == 0)
-                {
-                    newPath.Add(path[i]);
-                    continue;
-                }
+                if (i == 0) continue;
                 var delta = path[i - 1] - path[i];
 
                 if (delta != lastDelta)
@@ -152,7 +150,7 @@ namespace AgarthaLib._2D.Pathfinding
             }
             newPath.Add(path[^1]);
 
-            return newPath;
+            return newPath.Distinct().ToList();
         }
 
         private static Pathfinding2DNode GetLowestFCostNode(List<Pathfinding2DNode> nodes)

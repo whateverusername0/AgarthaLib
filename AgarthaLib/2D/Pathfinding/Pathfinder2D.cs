@@ -12,20 +12,20 @@ namespace AgarthaLib._2D.Pathfinding
         public TilemapMap Map;
 
         [Header("Obstacles")]
-        public bool GlobalObstacleDetection = true;
-        public List<TileBase> WalkableTiles = new();
+        public bool MapObstacleDetection = true;
+        public List<TileBase> ValidTiles = new();
 
         public virtual bool IsWalkable(MapTileData data)
         {
             if (Map == null || data == null) return false;
 
             // walkable tiles exist and the tile's not there
-            if (WalkableTiles != null && WalkableTiles.Count > 0
-            && !WalkableTiles.Any(q => q == data.Tile))
+            if (ValidTiles != null && ValidTiles.Count > 0
+            && !ValidTiles.Any(q => q == data.Tile))
                 return false;
 
             // not walkable according to the map
-            if (GlobalObstacleDetection && !Map.IsWalkable(data))
+            if (MapObstacleDetection && !Map.IsWalkable(data))
                 return false;
 
             return true;
@@ -35,15 +35,15 @@ namespace AgarthaLib._2D.Pathfinding
             => Map.GetTiles(position).All(IsWalkable);
 
         public bool TryFindPath(Vector2 start, Vector2 end, out List<Vector2> path)
-            => Pathfinding2D.TryFindPath(Map, start, end, IsWalkable, GlobalObstacleDetection, out path);
+            => Pathfinding2D.TryFindPath(Map, start, end, IsWalkable, MapObstacleDetection, out path);
 
         public bool TryFindPath(Vector2Int start, Vector2Int end, out List<Vector2Int> path)
-            => Pathfinding2D.TryFindPath(Map, start, end, IsWalkable, GlobalObstacleDetection, out path);
+            => Pathfinding2D.TryFindPath(Map, start, end, IsWalkable, MapObstacleDetection, out path);
 
         public List<Vector2> FindPath(Vector2 start, Vector2 end)
-            => Pathfinding2D.FindPath(Map, start, end, IsWalkable, GlobalObstacleDetection);
+            => Pathfinding2D.FindPath(Map, start, end, IsWalkable, MapObstacleDetection);
 
         public List<Vector2Int> FindPath(Vector2Int start, Vector2Int end)
-            => Pathfinding2D.FindPath(Map, start, end, IsWalkable, GlobalObstacleDetection);
+            => Pathfinding2D.FindPath(Map, start, end, IsWalkable, MapObstacleDetection);
     }
 }
