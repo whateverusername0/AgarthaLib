@@ -52,25 +52,24 @@ namespace AgarthaLib._2D.Tilemaps
             }
         }
 
-        protected void OnDrawGizmos()
-        {
-            Gizmos.DrawCube(Bounds.position, Bounds.size);
-        }
-
         private void MergeLayer(Tilemap layer, int z = 0)
         {
-            if (Map == null)
-                return;
+            if (Map == null) return;
 
             foreach (var pos in layer.cellBounds.allPositionsWithin)
             {
-                var tile = layer.GetTile(pos);
-                if (tile != null)
-                {
-                    var newPos = new Vector3Int(pos.x, pos.y, z);
-                    Map.SetTile(newPos, tile);
-                }
+                if (!TryGetTile(pos, out var tile))
+                    continue;
+
+                var newPos = new Vector3Int(pos.x, pos.y, z);
+                Map.SetTile(newPos, tile);
             }
+        }
+
+        protected void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireCube(Bounds.position, Bounds.size);
         }
 
         public MapTileData GetTile(Vector3Int position)
@@ -80,27 +79,22 @@ namespace AgarthaLib._2D.Tilemaps
             else return null;
         }
 
-        public Vector3Int GetCellAt(Vector3 position)
-            => Map.WorldToCell(position);
+        public bool TryGetTile(Vector3Int position, out MapTileData tile)
+        {
+            tile = GetTile(position);
+            return tile != null;
+        }
 
         public List<MapTileData> GetTiles(Vector2Int position)
         {
             var list = new List<MapTileData>();
-            foreach (var pos in Bounds.allPositionsWithin)
+            for (int i = Map.cellBounds.zMin; i <= Map.cellBounds.zMax; i++)
             {
-                var tile = GetTile(new Vector3Int(pos.x, pos.y, pos.z));
+                var pos = new Vector3Int(position.x, position.y, i);
+                var tile = GetTile(pos);
                 if (tile != null) list.Add(tile);
             }
             return list;
-        }
-
-        // picks the highest in order.
-        public MapTileData GetTile(Vector2Int position)
-        {
-            var tiles = GetTiles(position).ToList();
-            // return new empty data but with a null tile.
-            if (tiles.Count == 0) return new(Map, new(position.x, position.y, 0), null);
-            else return tiles.OrderByDescending(q => q.Position.z).First();
         }
 
         public void SetTile(Vector3Int position, TileBase tile)
@@ -125,7 +119,7 @@ namespace AgarthaLib._2D.Tilemaps
             var list = new List<MapTileData>();
             for (int x = position.x - range; x <= position.x + range; x++)
                 for (int y = position.y - range; y <= position.y + range; y++)
-                    list.Add(GetTile(new Vector2Int(x, y)));
+                    list.AddRange(GetTiles(new Vector2Int(x, y)));
             return list;
         }
 
@@ -148,6 +142,20 @@ namespace AgarthaLib._2D.Tilemaps
             return list;
         }
 
+        #region Extensions
+
+        public Vector3Int WorldToCell(Vector3 position)
+            => Map.WorldToCell(position);
+
+        public Vector3 CellToWorld(Vector3Int position)
+            => Map.GetCellCenterWorld(position);
+
+        public Vector2Int WorldToCell(Vector2 position)
+            => (Vector2Int)Map.WorldToCell(position);
+
+        public Vector2 CellToWorld(Vector2Int position)
+            => Map.GetCellCenterWorld((Vector3Int)position);
+
         public bool IsWalkable(MapTileData data)
         {
             var isNull = data == null || data.Tile == null;
@@ -155,13 +163,15 @@ namespace AgarthaLib._2D.Tilemaps
 
             #if USING_TILEMAP_EXTRAS
             var noAgarthanCollision = data.Tile is AgarthanTileBase { } art && !art.ProvidesCollision;
-            return isNull || noCollision || noAgarthanCollision;
+            return !isNull && (noCollision || noAgarthanCollision);
             #else
-            return isNull || noCollision;
+            return !isNull && noCollision;
             #endif
         }
 
         public bool IsWalkable(Vector2Int position)
-            => IsWalkable(GetTile(position));
+            => GetTiles(position).All(q => IsWalkable(q));
+
+        #endregion
     }
 }

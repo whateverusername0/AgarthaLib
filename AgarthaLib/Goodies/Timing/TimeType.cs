@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AgarthaLib.Timing
+namespace AgarthaLib.Goodies.Timing
 {
     [Serializable] public enum TimeType
     {

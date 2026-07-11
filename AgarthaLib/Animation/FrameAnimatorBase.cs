@@ -1,6 +1,6 @@
 ﻿using AgarthaLib.Attributes;
+using AgarthaLib.Goodies.Timing;
 using AgarthaLib.MonoBehavior;
-using AgarthaLib.Timing;
 using System.Collections.Generic;
 using UnityEngine;
 
