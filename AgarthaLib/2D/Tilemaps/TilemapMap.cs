@@ -212,8 +212,9 @@ namespace AgarthaLib._2D.Tilemaps
             return list;
         }
 
-        public List<MapTileData> GetAdjacentTiles(Vector2Int position, int range = 1)
-            => GetTilesInRange(position, range)
+        public List<MapTileData> GetAdjacentTiles(Vector2Int position, bool allowDiagonal)
+            => GetTilesInRange(position, 1)
+            .Where(q => allowDiagonal || ((Vector2Int)q.Position).magnitude <= 1)
             .Where(q => new Vector2Int(q.Position.x, q.Position.y) != position)
             .ToList();
 
@@ -228,8 +229,9 @@ namespace AgarthaLib._2D.Tilemaps
             return list;
         }
 
-        public List<MapTileData> GetAdjacentTiles(Vector3Int position, int range = 1)
-            => GetTilesInRange(position, range)
+        public List<MapTileData> GetAdjacentTiles(Vector3Int position, bool allowDiagonal)
+            => GetTilesInRange(position, 1)
+            .Where(q => allowDiagonal || ((Vector2Int)q.Position).magnitude <= 1)
             .Where(q => q.Position != position)
             .ToList();
 

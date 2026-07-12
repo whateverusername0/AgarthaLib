@@ -14,6 +14,7 @@ namespace AgarthaLib._2D.Pathfinding
         [Header("Obstacles")]
         public bool MapObstacleDetection = true;
         public List<TileBase> ValidTiles = new();
+        public bool AllowDiagonalMovement = true;
 
         public virtual bool IsWalkable(MapTileData data)
         {
@@ -35,15 +36,19 @@ namespace AgarthaLib._2D.Pathfinding
             => Map.GetTiles(position).All(IsWalkable);
 
         public bool TryFindPath(Vector2 start, Vector2 end, out List<Vector2> path)
-            => Pathfinding2D.TryFindPath(Map, start, end, IsWalkable, MapObstacleDetection, out path);
+            => Pathfinding2D.TryFindPath(Map, start, end, IsWalkable,
+                MapObstacleDetection, AllowDiagonalMovement, out path);
 
         public bool TryFindPath(Vector2Int start, Vector2Int end, out List<Vector2Int> path)
-            => Pathfinding2D.TryFindPath(Map, start, end, IsWalkable, MapObstacleDetection, out path);
+            => Pathfinding2D.TryFindPath(Map, start, end, IsWalkable,
+                MapObstacleDetection, AllowDiagonalMovement, out path);
 
         public List<Vector2> FindPath(Vector2 start, Vector2 end)
-            => Pathfinding2D.FindPath(Map, start, end, IsWalkable, MapObstacleDetection);
+            => Pathfinding2D.FindPath(Map, start, end, IsWalkable,
+                MapObstacleDetection, AllowDiagonalMovement);
 
         public List<Vector2Int> FindPath(Vector2Int start, Vector2Int end)
-            => Pathfinding2D.FindPath(Map, start, end, IsWalkable, MapObstacleDetection);
+            => Pathfinding2D.FindPath(Map, start, end, IsWalkable,
+                MapObstacleDetection, AllowDiagonalMovement);
     }
 }

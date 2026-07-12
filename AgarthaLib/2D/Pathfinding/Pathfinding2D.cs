@@ -9,26 +9,26 @@ namespace AgarthaLib._2D.Pathfinding
     public static class Pathfinding2D
     {
         public static bool TryFindPath(TilemapMap map, Vector2 start, Vector2 end,
-            Predicate<MapTileData> isWalkable, bool inclusive, out List<Vector2> path)
+            Predicate<MapTileData> isWalkable, bool inclusive, bool allowDiagonal, out List<Vector2> path)
         {
-            path = FindPath(map, start, end, isWalkable, inclusive);
+            path = FindPath(map, start, end, isWalkable, inclusive, allowDiagonal);
             return path != null && path.Count > 0;
         }
 
         public static bool TryFindPath(TilemapMap map, Vector2Int start, Vector2Int end,
-            Predicate<MapTileData> isWalkable, bool inclusive, out List<Vector2Int> path)
+            Predicate<MapTileData> isWalkable, bool inclusive, bool allowDiagonal, out List<Vector2Int> path)
         {
-            path = FindPath(map, start, end, isWalkable, inclusive);
+            path = FindPath(map, start, end, isWalkable, inclusive, allowDiagonal);
             return path != null && path.Count > 0;
         }
 
         public static List<Vector2> FindPath(TilemapMap map, Vector2 start, Vector2 end,
-            Predicate<MapTileData> isWalkable, bool inclusive)
+            Predicate<MapTileData> isWalkable, bool inclusive, bool allowDiagonal)
         {
             var startInt = map.WorldToCell(start);
             var endInt = map.WorldToCell(end);
 
-            var path = FindPath(map, startInt, endInt, isWalkable, inclusive);
+            var path = FindPath(map, startInt, endInt, isWalkable, inclusive, allowDiagonal);
             if (path == null || path.Count == 0)
                 return null;
 
@@ -40,14 +40,14 @@ namespace AgarthaLib._2D.Pathfinding
         }
 
         public static List<Vector2Int> FindPath(TilemapMap map, Vector2Int start, Vector2Int end,
-            Predicate<MapTileData> isWalkable, bool inclusive)
+            Predicate<MapTileData> isWalkable, bool inclusive, bool allowDiagonal)
         {
             if (start == end) return null; // lol
 
             var endTiles = map.GetTiles(end);
             if (inclusive ? endTiles.Any(q => !isWalkable(q)) : endTiles.All(q => !isWalkable(q)))
             {
-                var area = map.GetAdjacentTiles(end).Where(q => isWalkable(q)).ToList();
+                var area = map.GetAdjacentTiles(end, allowDiagonal).Where(q => isWalkable(q)).ToList();
                 if (area.Count == 0) return null;
                 end = (Vector2Int)area.First().Position;
             }
@@ -80,7 +80,7 @@ namespace AgarthaLib._2D.Pathfinding
                 openSet.Remove(currentNode);
                 closedSet.Add(currentNode.Position);
 
-                foreach (var neighbor in map.GetAdjacentTiles(currentNode.Position))
+                foreach (var neighbor in map.GetAdjacentTiles(currentNode.Position, allowDiagonal))
                 {
                     var pos = (Vector2Int)neighbor.Position;
                     var posTiles = map.GetTiles(pos);
