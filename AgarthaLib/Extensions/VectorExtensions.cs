@@ -4,6 +4,12 @@ namespace AgarthaLib.Extensions
 {
     public static class VectorExtensions
     {
+        public static Vector2 ToVector2(this float f)
+            => new(f, f);
+
+        public static Vector3 ToVector3(this float f)
+            => new(f, f, f);
+
         public static Vector3Int ToInt(this Vector3 a)
             => new(Mathf.RoundToInt(a.x), Mathf.RoundToInt(a.y), Mathf.RoundToInt(a.z));
 
