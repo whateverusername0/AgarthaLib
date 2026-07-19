@@ -3,7 +3,8 @@
     "rootNamespace": "AgarthaLib",
     "references": [
         "Unity.TextMeshPro",
-        "Unity.2D.Tilemap.Extras"
+        "Unity.2D.Tilemap.Extras",
+        "Unity.RenderPipelines.Universal.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -22,6 +23,11 @@
             "name": "com.unity.textmeshpro",
             "expression": "",
             "define": "USING_TMP"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "USING_URP"
         }
     ],
     "noEngineReferences": false

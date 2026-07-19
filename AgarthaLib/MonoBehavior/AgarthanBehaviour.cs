@@ -2,7 +2,7 @@
 using AgarthaLib.EventSystem;
 using AgarthaLib.EventSystem.EventBus;
 using AgarthaLib.Extensions;
-using AgarthaLib.Timing;
+using AgarthaLib.Goodies.Timing;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -11,10 +11,6 @@ using UnityEngine.Tilemaps;
 using UnityEditor;
 #endif
 
-#if USING_TILEMAP_EXTRAS
-using UnityEngine.Tilemaps;
-#endif
-
 namespace AgarthaLib.Attributes
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]

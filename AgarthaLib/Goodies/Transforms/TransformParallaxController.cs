@@ -1,14 +1,14 @@
-﻿using AgarthaLib.Attributes;
+﻿using AgarthaLib.Extensions;
 using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
-namespace AgarthaLib.Sprites.Effects
+namespace AgarthaLib.Goodies.Transforms
 {
     public class TransformParallaxController : AgarthanBehaviour
     {
         public Camera Camera;
 
-        [SerializeField, EditorReadOnly] private Vector3 _origin = Vector3.zero;
+        [SerializeField] public Vector3 Origin = Vector3.zero;
         [Range(0f, 1f)] public float Multiplier = 1f;
 
         protected override void Start()
@@ -17,14 +17,15 @@ namespace AgarthaLib.Sprites.Effects
 
             Camera = Camera == null ? Camera.main : Camera;
 
-            _origin = transform.position;
+            Origin = transform.position;
         }
 
         protected override void Update()
         {
             base.Update();
 
-            var pos = (Camera.transform.position - _origin) * (1f - Multiplier);
+            var cpos = Camera.transform.position;
+            var pos = (cpos - Origin) * (1f - Multiplier);
             transform.position = pos;
         }
     }

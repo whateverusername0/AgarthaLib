@@ -2,7 +2,7 @@
 using AgarthaLib.Extensions;
 using UnityEngine;
 
-namespace AgarthaLib.MonoBehavior
+namespace AgarthaLib.Goodies.Timing
 {
     public class TimedDespawn : AgarthanBehaviour
     {
