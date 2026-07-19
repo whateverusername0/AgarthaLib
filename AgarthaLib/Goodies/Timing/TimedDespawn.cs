@@ -1,5 +1,5 @@
-﻿using AgarthaLib.Attributes;
-using AgarthaLib.Extensions;
+﻿using AgarthaLib.Extensions;
+using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
 namespace AgarthaLib.Goodies.Timing
