@@ -129,6 +129,7 @@ namespace AgarthaLib.MonoBehavior
 
         #region Helper Methods
 
+        [ContextMenu("Manully fill valid null fields")]
         private void ValidateNull()
         {
             var fields = GetType().GetFields();
