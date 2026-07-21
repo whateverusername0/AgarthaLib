@@ -99,51 +99,16 @@ namespace AgarthaLib.MonoBehavior
 
         #endregion
 
-        #region Timers
-
-        private readonly List<TimerInstance> _timers = new();
-
-        protected virtual void RegisterTimer(float delay, Action a, bool overwrite = false)
-        {
-            var existing = GetTimer(a);
-            if (existing != null)
-            {
-                if (overwrite) UnregisterTimer(existing);
-                else throw new ArgumentException("Action");
-            }
-
-            _timers.Add(new(delay, a));
-        }
-
-        protected virtual void UnregisterTimer(TimerInstance inst)
-            => _timers.Remove(inst);
-
-        protected virtual void UnregisterTimer(Action a)
-        {
-            var existing = GetTimer(a);
-            if (existing != null) UnregisterTimer(existing);
-        }
-
-        protected virtual TimerInstance GetTimer(Action a)
-        {
-            var existing = _timers.Where(q => q.Action == a).FirstOrDefault();
-            if (existing != null) return existing;
-            return null;
-        }
-
-        #endregion
-
         protected virtual void Start()
         {
             ValidateNull();
 
-            // add LateFixedUpdate();
             StartCoroutine(LateFixedUpdateEnumerator());
         }
 
         protected virtual void Update()
         {
-            //UpdateTimers(); // todo refactor or remove
+            // placeholder
         }
 
         private IEnumerator LateFixedUpdateEnumerator()
@@ -153,18 +118,18 @@ namespace AgarthaLib.MonoBehavior
             {
                 yield return wffu;
                 try { LateFixedUpdate(); }
-                // fault tolerance
                 catch (Exception e) { Debug.LogException(e); }
             }
         }
 
         protected virtual void LateFixedUpdate()
         {
-
+            // placeholder
         }
 
         #region Helper Methods
 
+        [ContextMenu("Manully fill valid null fields")]
         private void ValidateNull()
         {
             var fields = GetType().GetFields();
@@ -177,20 +142,6 @@ namespace AgarthaLib.MonoBehavior
                     var fallback = att.Traverse ? GetComponentInChildren(type) : GetComponent(type);
                     var value = item.GetValue(this) as Component;
                     item.SetValue(this, value != null ? value : fallback);
-                }
-            }
-        }
-
-        private void UpdateTimers()
-        {
-            if (_timers.Count == 0) return;
-            foreach (var timer in _timers)
-            {
-                timer.Timer -= Time.deltaTime;
-                if (timer.Timer <= 0)
-                {
-                    timer.Timer = timer.Delay;
-                    timer.Action.Invoke();
                 }
             }
         }

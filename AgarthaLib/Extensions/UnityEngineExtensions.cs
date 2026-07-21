@@ -23,6 +23,17 @@ namespace AgarthaLib.Extensions
             return @out != null;
         }
 
+        public static T TryInstantiate<T>(this UnityEngine.Object @object, GameObject original,
+            Vector3 position, Quaternion rotation) where T : UnityEngine.Component
+        {
+            var inst = UnityEngine.Object.Instantiate(original, position, rotation);
+            if (inst.TryGetComponent<T>(out var c))
+                return c;
+
+            inst.SafeDestroy(inst);
+            return null;
+        }
+
         #endregion
 
         #region Components

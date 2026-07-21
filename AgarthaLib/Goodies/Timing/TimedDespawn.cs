@@ -1,4 +1,5 @@
-﻿using AgarthaLib.MonoBehavior;
+﻿using AgarthaLib.Extensions;
+using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
 namespace AgarthaLib.Goodies.Timing
@@ -6,23 +7,26 @@ namespace AgarthaLib.Goodies.Timing
     public class TimedDespawn : AgarthanBehaviour
     {
         public GameObject BoundObject;
-        public float Lifetime = 1f;
         public GameObject SpawnOnDespawn;
+        public float Lifetime = 1f;
+        public float LifetimeTimer = 0f;
 
-        protected override void Start()
+        protected override void Update()
         {
-            base.Start();
+            base.Update();
 
-            BoundObject = BoundObject == null ? gameObject : BoundObject;
-            RegisterTimer(Lifetime, () =>
+            if (LifetimeTimer >= Lifetime)
             {
                 if (SpawnOnDespawn != null)
                     Instantiate(SpawnOnDespawn, BoundObject.transform.position, Quaternion.identity);
-                Destroy(BoundObject);
-            });
+                this.SafeDestroy(BoundObject);
+                return;
+            }
+
+            LifetimeTimer += Time.deltaTime;
         }
 
-        public static void Add(GameObject boundObject, float lifetime)
+        public static void Trigger(GameObject boundObject, float lifetime)
         {
             var td = boundObject.AddComponent<TimedDespawn>();
             td.BoundObject = boundObject;
