@@ -3,7 +3,7 @@ using AgarthaLib.MonoBehavior;
 
 namespace AgarthaLib.Localization
 {
-    public class LocalizationManager : AgarthanSingleton<LocalizationManager>, IDontDestroyOnLoad
+    public class LocalizationManager : AgarthanSingleton<LocalizationManager>, IDoNotDestroyOnLoad
     {
         public LocalizationAsset DefaultLocale;
         public LocalizationAsset CurrentLocale;
