@@ -10,7 +10,7 @@ namespace AgarthaLib.Data
     ///     Acts as an indicator and does not bear any methods.
     ///     Is useful for specific checks.
     /// </summary>
-    public interface IDontDestroyOnLoad
+    public interface IDoNotDestroyOnLoad
     {
     }
 }

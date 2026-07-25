@@ -39,7 +39,7 @@ namespace AgarthaLib.MonoBehavior
             }
 
             // instance exists.
-            if (_instance is IDontDestroyOnLoad)
+            if (_instance is IDoNotDestroyOnLoad)
             {
                 // it's probably important
                 this.SafeDestroy(this);

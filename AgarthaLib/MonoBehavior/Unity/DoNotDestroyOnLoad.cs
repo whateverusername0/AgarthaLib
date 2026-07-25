@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿using AgarthaLib.Data;
+using UnityEngine;
 
 namespace AgarthaLib.MonoBehavior.Unity
 {
     // oh yeah?
-    public class DoNotDestroyOnLoad : MonoBehaviour
+    public class DoNotDestroyOnLoad : MonoBehaviour, IDoNotDestroyOnLoad
     {
         private void Start()
         {
