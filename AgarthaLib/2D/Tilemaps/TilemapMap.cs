@@ -85,7 +85,7 @@ namespace AgarthaLib._2D.Tilemaps
         private void SplitLayer(int z = 0)
         {
             var tm = MakeTilemap("Split", z);
-            var tiles = GetAllPossibleTiles(z);
+            var tiles = GetAllTiles(z);
             foreach (var tile in tiles)
                 tm.SetTile(tile.Position, tile.Tile);
 
@@ -167,6 +167,9 @@ namespace AgarthaLib._2D.Tilemaps
             return list;
         }
 
+        public List<MapTileData> GetTiles(int z)
+            => GetAllTiles(z); // alias
+
         public void SetTile(Vector3Int position, TileBase tile)
         {
             if (!Bounds.Contains(position))
@@ -214,7 +217,7 @@ namespace AgarthaLib._2D.Tilemaps
 
         public List<MapTileData> GetAdjacentTiles(Vector2Int position, bool allowDiagonal)
             => GetTilesInRange(position, 1)
-            .Where(q => allowDiagonal || ((Vector2Int)q.Position).magnitude <= 1)
+            .Where(q => allowDiagonal || Vector2Int.Distance(position, (Vector2Int)q.Position) <= 1f)
             .Where(q => new Vector2Int(q.Position.x, q.Position.y) != position)
             .ToList();
 
@@ -235,7 +238,7 @@ namespace AgarthaLib._2D.Tilemaps
             .Where(q => q.Position != position)
             .ToList();
 
-        public List<MapTileData> GetAllPossibleTiles(int z = 0)
+        public List<MapTileData> GetAllTiles(int z = 0)
         {
             var map = GetMap(z);
             var list = new List<MapTileData>();
@@ -245,6 +248,48 @@ namespace AgarthaLib._2D.Tilemaps
                 var tile = map.GetTile(pos);
                 if (tile != null) list.Add(new MapTileData(map, pos, tile));
             }
+            return list;
+        }
+
+        public List<MapTileData> GetConnectedTiles(Vector3Int position, TileBase tile, bool allowDiagonal)
+        {
+            var list = new List<MapTileData>();
+
+            var map = GetMap(position.z);
+            if (map == null) return null;
+
+            var startTile = map.GetTile(position);
+            var targetTile = tile != null ? tile : startTile;
+            if (startTile != targetTile || startTile == null)
+                return null;
+
+            var queue = new Queue<Vector3Int>();
+            var visited = new HashSet<Vector3Int>();
+
+            queue.Enqueue(position);
+            visited.Add(position);
+
+            while (queue.Count > 0)
+            {
+                var currentPos = queue.Dequeue();
+                var currentTile = map.GetTile(currentPos);
+
+                list.Add(new(map, currentPos, currentTile));
+
+                foreach (var neighbor in GetAdjacentTiles(currentPos, allowDiagonal))
+                {
+                    var neighborPos = neighbor.Position;
+
+                    if (!Bounds.Contains(neighborPos)
+                    || !visited.Add(neighborPos))
+                        continue;
+
+
+                    if (neighbor.Tile == targetTile)
+                        queue.Enqueue(neighborPos);
+                }
+            }
+
             return list;
         }
 

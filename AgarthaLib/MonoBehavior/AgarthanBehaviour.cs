@@ -111,6 +111,11 @@ namespace AgarthaLib.MonoBehavior
             // placeholder
         }
 
+        protected virtual void LateUpdate()
+        {
+            // placeholder
+        }
+
         private IEnumerator LateFixedUpdateEnumerator()
         {
             var wffu = new WaitForFixedUpdate();
