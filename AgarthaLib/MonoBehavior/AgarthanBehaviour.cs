@@ -127,6 +127,11 @@ namespace AgarthaLib.MonoBehavior
             // placeholder
         }
 
+        protected virtual void OnDestroy()
+        {
+            // placeholder
+        }
+
         #region Helper Methods
 
         [ContextMenu("Manully fill valid null fields")]

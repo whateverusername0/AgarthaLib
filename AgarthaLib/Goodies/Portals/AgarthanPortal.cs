@@ -66,8 +66,10 @@ namespace AgarthaLib.Goodies.Portals
             RecursiveRender(mc.position, mc.rotation, Camera, 0, Depth);
         }
 
-        protected virtual void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
+
             if (_renderTexture != null)
             {
                 _renderTexture.Release();
