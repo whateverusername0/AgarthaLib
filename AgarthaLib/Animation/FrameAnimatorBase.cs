@@ -41,8 +41,9 @@ namespace AgarthaLib.Animation
             Cycle();
         }
 
-        protected virtual void LateUpdate()
+        protected override void LateUpdate()
         {
+            base.LateUpdate();
             if (TimeScale != TimeType.Late && TimeScale != TimeType.LateUnscaled)
                 return;
 

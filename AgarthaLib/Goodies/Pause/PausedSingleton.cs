@@ -32,8 +32,9 @@ namespace AgarthaLib.Goodies.Pause
 
         protected virtual void UnpausedFixedUpdate() { }
 
-        protected virtual void LateUpdate()
+        protected override void LateUpdate()
         {
+            base.LateUpdate();
             if (_pause.Paused && !UpdateOnPause)
                 return;
 
