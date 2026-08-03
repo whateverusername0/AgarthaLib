@@ -1,12 +1,11 @@
 ﻿#if USING_TILEMAP_EXTRAS
-using AgarthaLib._2D.Tilemaps.Interfaces;
 using AgarthaLib.Attributes;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 namespace AgarthaLib._2D.Tilemaps.RuleTiles
 {
-    public abstract class AgarthanTileBase : TileBase, ICollisionProvider
+    public abstract class AgarthanTileBase : TileBase
     {
         [SerializeField] private RuleTile _ruleTileReference;
         [ScriptableObjectIcon] virtual public RuleTile RuleTileReference
@@ -16,9 +15,6 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
         }
 
         public bool ProvidesCollision = false;
-
-        bool ICollisionProvider.ProvidesCollision()
-            => ProvidesCollision;
 
         public virtual RuleTile GetRuleTile()
             => RuleTileReference;
