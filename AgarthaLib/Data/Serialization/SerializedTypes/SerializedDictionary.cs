@@ -117,5 +117,18 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
         }
 
         #endregion
+
+        [ContextMenu("Fill with blanks")]
+        public void FillWithBlanks()
+        {
+            Dictionary.Clear();
+
+            if (typeof(K).IsEnum)
+            {
+                var values = Enum.GetValues(typeof(K));
+                foreach (var v in values)
+                    Dictionary.Add((K)v, default);
+            }
+        }
     }
 }
