@@ -30,8 +30,10 @@ namespace AgarthaLib.MonoBehavior
             }
         }
 
-        protected virtual void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+
             if (_instance == null)
             {
                 _instance = (T)this;
