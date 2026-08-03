@@ -78,7 +78,7 @@ namespace AgarthaLib.Extensions
         public static T EnsureComponent<T>(this GameObject @object) where T : Component
         {
             var c = @object.GetComponent<T>();
-            if (!c) return @object.AddComponent<T>();
+            if (c == null) return @object.AddComponent<T>();
             return c;
         }
 
@@ -125,6 +125,9 @@ namespace AgarthaLib.Extensions
 
         public static bool TryFindChild(this Transform t, string name, out Transform child)
             => (child = t.Find(name)) != null;
+
+        public static GameObject EnsureChild(this GameObject go, string name)
+            => go.transform.EnsureChild(name).gameObject;
 
         public static Transform EnsureChild(this Transform t, string name)
         {
@@ -204,6 +207,12 @@ namespace AgarthaLib.Extensions
 
         public static bool IsInLayerMask(this LayerMask lm, int layer)
             => lm == (lm | (1 << layer));
+
+        public static LayerMask Inverted(this LayerMask lm)
+            => ~lm;
+
+        public static LayerMask And(this LayerMask lm, LayerMask other)
+            => lm | other;
 
         #endregion
     }

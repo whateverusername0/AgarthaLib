@@ -99,5 +99,12 @@ namespace AgarthaLib.Extensions
             return min;
         }
 
+        public static TEnum[] GetEnumValues<TEnum>() where TEnum : Enum
+        {
+            var values = Enum.GetValues(typeof(TEnum))
+                .Cast<TEnum>()
+                .OrderBy(q => (int)(object)q);
+            return values.ToArray();
+        }
     }
 }

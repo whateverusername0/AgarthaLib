@@ -28,6 +28,11 @@
             "name": "com.unity.render-pipelines.universal",
             "expression": "",
             "define": "USING_URP"
+        },
+        {
+            "name": "Select...",
+            "expression": "",
+            "define": "USING_URP"
         }
     ],
     "noEngineReferences": false
