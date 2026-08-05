@@ -1,25 +1,24 @@
 ﻿using AgarthaLib.Attributes;
-using AgarthaLib.MonoBehavior;
+using AgarthaLib.EventSystem;
 using UnityEngine;
 
-namespace AgarthaLib.EventSystem.StaticDispatchers
+namespace AgarthaLib.ECS.Systems
 {
-    public class DeviceInfoEventDispatcher : AgarthanSingleton<DeviceInfoEventDispatcher>
+    /// <summary>
+    ///     Raises events based on device data being changed such as screen resolution.
+    /// </summary>
+    public class DeviceInfoEventDispatcher : EntitySystem
     {
         [SerializeField, EditorReadOnly] private Vector2 _resolution;
         public Vector2 Resolution => _resolution;
 
-        protected override void Start()
+        public override void Initialize()
         {
-            base.Start();
-
             _resolution = new(Screen.width, Screen.height);
         }
 
-        protected override void Update()
+        public override void UpdateSystem()
         {
-            base.Update();
-
             var newRes = new Vector2(Screen.width, Screen.height);
             if (_resolution != newRes)
             {
