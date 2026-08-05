@@ -106,5 +106,12 @@ namespace AgarthaLib.Extensions
                 .OrderBy(q => (int)(object)q);
             return values.ToArray();
         }
+
+        public static IEnumerable<Type> GetAllDerivatives(this Type t)
+        {
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .Where(type => type.IsSubclassOf(t));
+        }
     }
 }
