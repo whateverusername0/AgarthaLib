@@ -70,9 +70,9 @@ namespace AgarthaLib._2D.Pathfinding
             if (!IsWalkable(end, endTile))
             {
                 var area = grid.GetAdjacentTiles(end, AllowDiagonalMovement)
-                    .Where(q => IsWalkable(q.position, q.tile)).ToList();
+                    .Where(q => IsWalkable(q.Key, q.Value)).ToList();
                 if (area.Count == 0) return null;
-                end = area.First().position;
+                end = area.First().Key;
             }
 
             var startNode = new Pathfinding2DNode(start);
@@ -105,7 +105,7 @@ namespace AgarthaLib._2D.Pathfinding
 
                 foreach (var neighbor in grid.GetAdjacentTiles(currentNode.Position, AllowDiagonalMovement))
                 {
-                    var pos = neighbor.position;
+                    var pos = neighbor.Key;
                     var posTiles = grid.GetTile(pos);
                     if (closedSet.Contains(pos) || !IsWalkable(pos, posTiles))
                         continue;

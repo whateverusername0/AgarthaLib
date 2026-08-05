@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace AgarthaLib.Data
 {
-    [Serializable] public class ObjectWhitelist<T> where T : IComparable
+    [Serializable] public class ObjectWhitelist<T> where T : IEquatable<T>
     {
         public List<T> Whitelist = new();
         public List<T> Blacklist = new();

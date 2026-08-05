@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-namespace AgarthaLib._2D.Tilemaps
+namespace AgarthaLib.Collision
 {
     [ExecuteAlways, RequireComponent(typeof(TilemapCollider2D))]
     public class TilemapCollider3D : AgarthanBehaviour

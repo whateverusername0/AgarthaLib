@@ -26,6 +26,9 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
         public SerializedDictionary()
             => _dictionary = new();
 
+        public SerializedDictionary(Dictionary<K, V> old)
+            => _dictionary = new(old);
+
         public SerializedDictionary(int capacity, IEqualityComparer<K> comparer = null)
             => _dictionary = new(capacity, comparer ?? EqualityComparer<K>.Default);
 

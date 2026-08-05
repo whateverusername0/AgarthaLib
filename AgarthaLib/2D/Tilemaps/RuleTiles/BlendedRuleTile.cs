@@ -21,7 +21,7 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
                 case RuleOverrideTile rot:
                     other = rot.m_InstanceTile; break;
                 case AgarthanTileBase atb:
-                    other = atb.RuleTileReference; break;
+                    other = atb.TileReference; break;
                 default: break;
             }
 

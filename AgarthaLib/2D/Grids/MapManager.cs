@@ -1,19 +1,24 @@
-﻿using AgarthaLib.Attributes;
+﻿using AgarthaLib._2D.Tilemaps.RuleTiles;
+using AgarthaLib.Attributes;
+using AgarthaLib.Data.Serialization.SerializedTypes;
+using AgarthaLib.ECS.Systems;
+using AgarthaLib.Extensions;
 using AgarthaLib.MonoBehavior;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace AgarthaLib._2D.Grids
 {
     // oh my fucking god
     // at least the implementation is as stupid as wood bark
-    public abstract class MapManager<TMap, TGrid, TTilemap, TLayer>
-        : AgarthanSingleton<MapManager<TMap, TGrid, TTilemap, TLayer>>
-        where TMap : Map<TGrid, TTilemap, TLayer>
-        where TGrid : MapGrid<TTilemap, TLayer>
-        where TTilemap : MapGridLayer<TLayer>
+    public abstract class MapManager<TMap, TGrid, TGridLayer, TLayer>
+        : AgarthanSingleton<MapManager<TMap, TGrid, TGridLayer, TLayer>>
+        where TMap : Map<TGrid, TGridLayer, TLayer>
+        where TGrid : MapGrid<TGridLayer, TLayer>
+        where TGridLayer : MapGridLayer<TLayer>
         where TLayer : Enum
     {
         [SerializeField, EditorReadOnly] protected List<TMap> _maps = new();
@@ -22,7 +27,10 @@ namespace AgarthaLib._2D.Grids
         public List<TMap> Maps => _maps;
         public TMap ActiveMap => _activeMap;
 
-        public virtual void ResolveMaps()
+        public SerializedDictionary<TGridLayer, SerializedDictionary<Vector2Int, TileBase>>
+            TileQuery = new();
+
+        public virtual List<TMap> ResolveMaps()
             => _maps = FindObjectsOfType<TMap>(includeInactive: true).ToList();
 
         public virtual TMap ResolveActiveMap()
@@ -50,5 +58,87 @@ namespace AgarthaLib._2D.Grids
         }
 
         public abstract void ActiveMapChanged(TMap lastMap, TMap newMap);
+
+        protected override void Start()
+        {
+            base.Start();
+
+            DirtyTileQuery();
+            SubscribeGlobalEvent<TilemapTileChangedGlobalEvent>(OnTilemapTileChanged);
+        }
+
+        protected virtual void OnTilemapTileChanged(ref TilemapTileChangedGlobalEvent args)
+        {
+            if (args.Tilemap == null
+            || !args.Tilemap.TryGetComponent<TGridLayer>(out var gridLayer))
+                return;
+
+            if (TileQuery.Count == 0)
+                DirtyTileQuery(); // i pray this never happens
+
+            foreach (var tile in args.Tiles)
+            {
+                var position = (Vector2Int)tile.position;
+                var exists = TileQuery[gridLayer].ContainsKey(position);
+
+                if (tile.tile == null && !exists)
+                    continue;
+
+                if (tile.tile == null && exists)
+                {
+                    // another safety net for instanced tiles.
+                    var existing = TileQuery[gridLayer][position];
+                    if (existing is AgarthanTileBase && (existing as AgarthanTileBase).Instanced)
+                        this.SafeDestroy(existing);
+
+                    TileQuery[gridLayer].Remove(position);
+                    continue;
+                }
+
+                if (tile.tile != null && !exists)
+                    TileQuery[gridLayer].Add(position, tile.tile);
+
+                if (tile.tile != null && exists)
+                {
+                    TileQuery[gridLayer][position] = tile.tile;
+                    continue;
+                }
+            }
+        }
+
+        [ContextMenu("Refresh tile query")]
+        protected void DirtyTileQuery()
+        {
+            var sd = new SerializedDictionary<TGridLayer, SerializedDictionary<Vector2Int, TileBase>>();
+
+            // hoooooooly fucking shit
+            TileQuery.Clear();
+            foreach (var map in ResolveMaps())
+                foreach (var grid in map.ResolveGrids())
+                    foreach (var layer in grid.ResolveLayers())
+                        sd.Add(layer, new(layer.GetAllTiles()));
+        }
+
+        public virtual List<(TGridLayer gridLayer, Vector2Int position, T tile)> QueryTilesOfType<T>()
+            where T : TileBase
+        {
+            if (TileQuery.Count == 0)
+                DirtyTileQuery();
+
+            var flat = GetQueryFlattened();
+            var r = flat.Where(q => q.tile is T).ToList()
+                .ConvertAll(q => (q.layer, q.pos, q.tile as T));
+
+            return r;
+        }
+
+        public virtual IEnumerable<(TGridLayer layer, Vector2Int pos, TileBase tile)> GetQueryFlattened()
+            => (IEnumerable<(TGridLayer layer, Vector2Int pos, TileBase tile)>)TileQuery
+                .SelectMany(layer => layer.Value, (layerKvp, tileKvp) => new
+                {
+                    Layer = layerKvp.Key,
+                    Position = tileKvp.Key,
+                    Tile = tileKvp.Value,
+                });
     }
 }

@@ -15,8 +15,7 @@ namespace AgarthaLib._2D.Pathfinding
         where TTilemap : MapGridLayer<TLayer>
         where TLayer : Enum
     {
-        public TLayer ActiveLayer;
-        [SerializeField, EditorReadOnly] private Pathfinding2D<TGrid, TTilemap, TLayer> _pathfinder;
+        private Pathfinding2D<TGrid, TTilemap, TLayer> _pathfinder;
 
         [Header("Obstacles")]
         public bool UseValidTiles = false;
@@ -25,10 +24,10 @@ namespace AgarthaLib._2D.Pathfinding
 
         public Pathfinding2D<TGrid, TTilemap, TLayer> PathfindingProvider => _pathfinder;
 
-        public virtual bool IsWalkable(TGrid grid, Vector2Int pos, TileBase tile)
+        public virtual bool IsWalkable(TGrid grid, TLayer activeLayer, Vector2Int pos, TileBase tile)
         {
             // grid does not exist in there
-            if (grid == null || grid.GetTilemap(ActiveLayer) == null)
+            if (grid == null || grid.GetTilemap(activeLayer) == null)
                 return false;
 
             // not a valid tile to walk on
@@ -38,12 +37,12 @@ namespace AgarthaLib._2D.Pathfinding
                 return false;
 
             var tiles = grid.GetAllTilesOn(pos)
-                .Where(q => (int)(object)q.layer > (int)(object)ActiveLayer)
+                .Where(q => (int)(object)q.layer > (int)(object)activeLayer)
                 .ToList();
 
             // check for obstructions
             // TODO make multi layer check
-            var layerData = grid.GetLayerData(ActiveLayer);
+            var layerData = grid.GetLayerData(activeLayer);
             foreach (var potentialObstable in tiles)
             {
                 if (layerData == null)
@@ -62,25 +61,31 @@ namespace AgarthaLib._2D.Pathfinding
             return true;
         }
 
-        public Pathfinding2D<TGrid, TTilemap, TLayer> GetPathfinder(TGrid grid)
+        public Pathfinding2D<TGrid, TTilemap, TLayer> GetPathfinder(TGrid grid, TLayer activeLayer)
         {
-            _pathfinder ??= new(ActiveLayer, grid);
+            _pathfinder ??= new(activeLayer, grid);
+            _pathfinder.ActiveLayer = activeLayer;
+            _pathfinder.ActiveGrid = grid;
             _pathfinder.AllowDiagonalMovement = AllowDiagonalMovement;
-            _pathfinder.WalkableTilePredicate = (q) => IsWalkable(grid, q.position, q.tile);
+            _pathfinder.WalkableTilePredicate = (q) => IsWalkable(grid, activeLayer, q.position, q.tile);
 
             return _pathfinder;
         }
 
-        public bool TryFindPath(TGrid grid, Vector2 start, Vector2 end, out List<Vector2> path)
-            => GetPathfinder(grid).TryFindPath(start, end, out path);
+        public bool TryFindPath(TGrid grid, TLayer activeLayer,
+            Vector2 start, Vector2 end, out List<Vector2> path)
+            => GetPathfinder(grid, activeLayer).TryFindPath(start, end, out path);
 
-        public bool TryFindPath(TGrid grid, Vector2Int start, Vector2Int end, out List<Vector2Int> path)
-            => GetPathfinder(grid).TryFindPath(start, end, out path);
+        public bool TryFindPath(TGrid grid, TLayer activeLayer,
+            Vector2Int start, Vector2Int end, out List<Vector2Int> path)
+            => GetPathfinder(grid, activeLayer).TryFindPath(start, end, out path);
 
-        public List<Vector2> FindPath(TGrid grid, Vector2 start, Vector2 end)
-            => GetPathfinder(grid).FindPath(start, end);
+        public List<Vector2> FindPath(TGrid grid, TLayer activeLayer,
+            Vector2 start, Vector2 end)
+            => GetPathfinder(grid, activeLayer).FindPath(start, end);
 
-        public List<Vector2Int> FindPath(TGrid grid, Vector2Int start, Vector2Int end)
-            => GetPathfinder(grid).FindPath(start, end);
+        public List<Vector2Int> FindPath(TGrid grid,
+            TLayer activeLayer, Vector2Int start, Vector2Int end)
+            => GetPathfinder(grid, activeLayer).FindPath(start, end);
     }
 }

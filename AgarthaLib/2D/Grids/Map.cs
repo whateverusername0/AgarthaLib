@@ -9,9 +9,9 @@ using UnityEngine.Tilemaps;
 
 namespace AgarthaLib._2D.Grids
 {
-    public abstract class Map<TGrid, TTilemap, TLayer> : AgarthanBehaviour
-        where TGrid : MapGrid<TTilemap, TLayer>
-        where TTilemap : MapGridLayer<TLayer>
+    public abstract class Map<TGrid, TGridLayer, TLayer> : AgarthanBehaviour
+        where TGrid : MapGrid<TGridLayer, TLayer>
+        where TGridLayer : MapGridLayer<TLayer>
         where TLayer : Enum
     {
         public List<TGrid> Grids = new();
@@ -26,13 +26,13 @@ namespace AgarthaLib._2D.Grids
         public virtual TGrid GetOverlappingGrid(Vector2 pos)
         {
             var olc = Physics2D.OverlapCircleAll(pos, .5f)
-                .Select(q => q.GetComponent<TTilemap>());
+                .Select(q => q.GetComponent<TGridLayer>());
             if (olc.Count() == 0) return null;
 
             return olc.First().GetGrid() as TGrid;
         }
 
-        public virtual TGrid CreateGrid(Vector3 pos, Quaternion rot)
+        public virtual TGrid CreateGrid(Vector3 pos, Quaternion rot, bool isStatic = false)
         {
             var go = new GameObject($"grid_{Guid.NewGuid()}");
             go.transform.SetParent(this.transform);
@@ -42,12 +42,16 @@ namespace AgarthaLib._2D.Grids
 
             ResolveGrids();
 
-            var rb = go.EnsureComponent<Rigidbody>();
-            rb.isKinematic = true;
-            rb.constraints =
-                RigidbodyConstraints.FreezePositionZ
-                & RigidbodyConstraints.FreezeRotationX
-                & RigidbodyConstraints.FreezeRotationY;
+            if (!isStatic)
+            {
+                // let that sink in
+                var rb = go.EnsureComponent<Rigidbody>();
+                rb.isKinematic = true;
+                rb.constraints =
+                    RigidbodyConstraints.FreezePositionZ
+                    & RigidbodyConstraints.FreezeRotationX
+                    & RigidbodyConstraints.FreezeRotationY;
+            }
 
             return gd;
         }

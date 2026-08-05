@@ -7,17 +7,32 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
 {
     public abstract class AgarthanTileBase : TileBase
     {
-        [SerializeField] private RuleTile _ruleTileReference;
-        [ScriptableObjectIcon] virtual public RuleTile RuleTileReference
+        [SerializeField] private TileBase _tileReference;
+        [ScriptableObjectIcon] virtual public TileBase TileReference
         {
-            get => _ruleTileReference;
-            set => _ruleTileReference = value;
+            get => _tileReference;
+            set => _tileReference = value;
         }
 
         public bool ProvidesCollision = false;
 
-        public virtual RuleTile GetRuleTile()
-            => RuleTileReference;
+        [Header("Data")]
+        public bool ShouldInstance = true;
+        [EditorReadOnly] public bool Instanced = false;
+
+        public virtual TileBase GetRuleTile()
+            => TileReference;
+
+        public override bool StartUp(Vector3Int position, ITilemap tilemap, GameObject go)
+        {
+            if (!Application.isPlaying || !ShouldInstance || Instanced)
+                return true;
+
+            var inst = Instantiate(this);
+            inst.Instanced = true;
+            tilemap.GetComponent<Tilemap>().SetTile(position, inst);
+            return false; // move onto instanced
+        }
 
         public override void GetTileData(Vector3Int position, ITilemap tilemap, ref TileData tileData)
         {
