@@ -40,6 +40,9 @@ namespace AgarthaLib.MonoBehavior
                 return;
             }
 
+            // jic
+            if (_instance == this) return;
+
             // instance exists.
             if (_instance is IDoNotDestroyOnLoad)
             {
