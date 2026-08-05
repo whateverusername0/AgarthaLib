@@ -1,5 +1,5 @@
 ﻿using AgarthaLib.Attributes;
-using AgarthaLib.EventSystem.StaticDispatchers;
+using AgarthaLib.ECS.Systems;
 using AgarthaLib.Extensions;
 using AgarthaLib.Goodies.Pause;
 using System;
