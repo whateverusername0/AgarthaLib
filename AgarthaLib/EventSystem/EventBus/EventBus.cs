@@ -14,8 +14,8 @@ namespace AgarthaLib.EventSystem.EventBus
         {
             var args2 = args; // copy
 
-            _logger.LogInfo($"Raised new {typeof(TArgs)} event.");
-            if (!_subscriptions.TryGetValue(typeof(TArgs), out var handlers))
+            _logger.LogInfo($"Raised new {args.GetType()} event.");
+            if (!_subscriptions.TryGetValue(args.GetType(), out var handlers))
                 return;
 
             foreach (var handler in handlers)
@@ -28,8 +28,8 @@ namespace AgarthaLib.EventSystem.EventBus
         /// <inheritdoc/>
         public void RaiseEvent<TArgs>(ref TArgs args) where TArgs : class
         {
-            _logger.LogInfo($"Raised new {typeof(TArgs)} event.");
-            if (!_subscriptions.TryGetValue(typeof(TArgs), out var handlers))
+            _logger.LogInfo($"Raised new {args.GetType()} event.");
+            if (!_subscriptions.TryGetValue(args.GetType(), out var handlers))
                 return;
 
             foreach (var handler in handlers)
