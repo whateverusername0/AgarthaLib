@@ -1,5 +1,4 @@
-﻿using AgarthaLib.Attributes;
-using AgarthaLib.Extensions;
+﻿using AgarthaLib.Extensions;
 using AgarthaLib.MonoBehavior;
 using System;
 using System.Collections.Generic;
@@ -21,8 +20,6 @@ namespace AgarthaLib._2D.Grids
 
         public float ZPosition => transform.position.z;
 
-        [SerializeField, EditorReadOnly] private bool _renderingEnabled = true;
-
         public virtual TGrid GetOverlappingGrid(Vector2 pos)
         {
             var olc = Physics2D.OverlapCircleAll(pos, .5f)
@@ -32,16 +29,18 @@ namespace AgarthaLib._2D.Grids
             return olc.First().GetGrid() as TGrid;
         }
 
-        public virtual TGrid CreateGrid(Vector3 pos, Quaternion rot, bool isStatic = false)
+        public virtual TGrid CreateGrid(Vector3 pos, Quaternion rot, string name = "", bool isStatic = false)
         {
-            var go = new GameObject($"grid_{Guid.NewGuid()}");
-            go.transform.SetParent(this.transform);
+            name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
+            var go = transform.EnsureChild($"grid_{name}");
             go.transform.SetPositionAndRotation(pos, rot);
+
             var gd = go.EnsureComponent<TGrid>();
             gd.ResolveLayers();
 
             ResolveGrids();
 
+            gd.IsStatic = isStatic;
             if (!isStatic)
             {
                 // let that sink in
@@ -76,32 +75,13 @@ namespace AgarthaLib._2D.Grids
 
         public virtual List<TGrid> ResolveGrids()
         {
-            Grids = GetComponentsInChildren<TGrid>().Where(q => q != GlobalGrid).ToList();
+            Grids = GetComponentsInChildren<TGrid>()
+                .Where(q => UseGlobalGrid || q != GlobalGrid)
+                .ToList();
+
             return Grids;
         }
 
         public abstract void MakeActive();
-
-        public virtual void EnableRendering()
-        {
-            if (_renderingEnabled) return;
-
-            _renderingEnabled = true;
-
-            // hi hello. EVERYTHING in the hierarchy of MapData is MANAGED
-            foreach (var renderer in GetComponentsInChildren<Renderer>())
-                renderer.enabled = true;
-        }
-
-        public virtual void DisableRendering()
-        {
-            if (!_renderingEnabled) return;
-
-            _renderingEnabled = false;
-
-            // hi hello. EVERYTHING in the hierarchy of MapData is MANAGED
-            foreach (var renderer in GetComponentsInChildren<Renderer>())
-                renderer.enabled = false;
-        }
     }
 }

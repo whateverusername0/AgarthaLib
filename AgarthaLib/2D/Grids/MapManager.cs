@@ -1,5 +1,4 @@
-﻿using AgarthaLib._2D.Tilemaps.RuleTiles;
-using AgarthaLib.Attributes;
+﻿using AgarthaLib.Attributes;
 using AgarthaLib.Data.Serialization.SerializedTypes;
 using AgarthaLib.ECS.Systems;
 using AgarthaLib.Extensions;
@@ -21,14 +20,13 @@ namespace AgarthaLib._2D.Grids
         where TGridLayer : MapGridLayer<TLayer>
         where TLayer : Enum
     {
+        #region Maps
+
         [SerializeField, EditorReadOnly] protected List<TMap> _maps = new();
         [SerializeField, EditorReadOnly] protected TMap _activeMap;
 
         public List<TMap> Maps => _maps;
         public TMap ActiveMap => _activeMap;
-
-        public SerializedDictionary<TGridLayer, SerializedDictionary<Vector2Int, TileBase>>
-            TileQuery = new();
 
         public virtual List<TMap> ResolveMaps()
             => _maps = FindObjectsOfType<TMap>(includeInactive: true).ToList();
@@ -47,11 +45,6 @@ namespace AgarthaLib._2D.Grids
         {
             if (map == null) return;
 
-            if (_activeMap != null)
-                _activeMap.DisableRendering();
-
-            map.EnableRendering();
-
             var lastMap = _activeMap;
             _activeMap = map;
             ActiveMapChanged(lastMap, map);
@@ -59,24 +52,43 @@ namespace AgarthaLib._2D.Grids
 
         public abstract void ActiveMapChanged(TMap lastMap, TMap newMap);
 
-        protected override void Start()
+        public TMap AddMap(string name = "")
         {
-            base.Start();
-
-            DirtyTileQuery();
-            SubscribeGlobalEvent<TilemapTileChangedGlobalEvent>(OnTilemapTileChanged);
+            name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
+            var map = this.transform.EnsureChild($"map_{name}").EnsureComponent<TMap>();
+            Maps.Add(map);
+            return map;
         }
 
+        #endregion
+
+        #region Query
+
+        public SerializedDictionary<TGridLayer, SerializedDictionary<Vector2Int, TileBase>>
+            TileQuery = new();
+
         protected virtual void OnTilemapTileChanged(ref TilemapTileChangedGlobalEvent args)
+            => ProcessQueryChange(args.Tilemap, args.Tiles);
+
+        protected virtual void DirtyTileQuery()
         {
-            if (args.Tilemap == null
-            || !args.Tilemap.TryGetComponent<TGridLayer>(out var gridLayer))
+            // hoooooooly fucking shit
+            TileQuery.Clear();
+            foreach (var map in ResolveMaps())
+                foreach (var grid in map.ResolveGrids())
+                    foreach (var layer in grid.ResolveLayers())
+                        TileQuery.Add(layer, new(layer.GetAllTiles()));
+        }
+
+        protected virtual void ProcessQueryChange(Tilemap t, Tilemap.SyncTile[] st)
+        {
+            if (t == null || !t.TryGetComponent<TGridLayer>(out var gridLayer))
                 return;
 
             if (TileQuery.Count == 0)
                 DirtyTileQuery(); // i pray this never happens
 
-            foreach (var tile in args.Tiles)
+            foreach (var tile in st)
             {
                 var position = (Vector2Int)tile.position;
                 var exists = TileQuery[gridLayer].ContainsKey(position);
@@ -86,11 +98,6 @@ namespace AgarthaLib._2D.Grids
 
                 if (tile.tile == null && exists)
                 {
-                    // another safety net for instanced tiles.
-                    var existing = TileQuery[gridLayer][position];
-                    if (existing is AgarthanTileBase && (existing as AgarthanTileBase).Instanced)
-                        this.SafeDestroy(existing);
-
                     TileQuery[gridLayer].Remove(position);
                     continue;
                 }
@@ -104,19 +111,6 @@ namespace AgarthaLib._2D.Grids
                     continue;
                 }
             }
-        }
-
-        [ContextMenu("Refresh tile query")]
-        protected void DirtyTileQuery()
-        {
-            var sd = new SerializedDictionary<TGridLayer, SerializedDictionary<Vector2Int, TileBase>>();
-
-            // hoooooooly fucking shit
-            TileQuery.Clear();
-            foreach (var map in ResolveMaps())
-                foreach (var grid in map.ResolveGrids())
-                    foreach (var layer in grid.ResolveLayers())
-                        sd.Add(layer, new(layer.GetAllTiles()));
         }
 
         public virtual List<(TGridLayer gridLayer, Vector2Int position, T tile)> QueryTilesOfType<T>()
@@ -133,12 +127,19 @@ namespace AgarthaLib._2D.Grids
         }
 
         public virtual IEnumerable<(TGridLayer layer, Vector2Int pos, TileBase tile)> GetQueryFlattened()
-            => (IEnumerable<(TGridLayer layer, Vector2Int pos, TileBase tile)>)TileQuery
-                .SelectMany(layer => layer.Value, (layerKvp, tileKvp) => new
-                {
-                    Layer = layerKvp.Key,
-                    Position = tileKvp.Key,
-                    Tile = tileKvp.Value,
-                });
+            => TileQuery.SelectMany(
+                layer => layer.Value,
+                (layerKvp, tileKvp) => (layerKvp.Key, tileKvp.Key, tileKvp.Value)
+            );
+
+        #endregion
+
+        protected override void Start()
+        {
+            base.Start();
+
+            DirtyTileQuery();
+            SubscribeGlobalEvent<TilemapTileChangedGlobalEvent>(OnTilemapTileChanged);
+        }
     }
 }

@@ -27,6 +27,10 @@ namespace AgarthaLib._2D.Grids
 
         public abstract LayerData GetLayerData();
 
+        [ContextMenu("Clear Grid")]
+        public void Clear()
+            => Tilemap.ClearAllTiles();
+
         public virtual TileBase GetTile(Vector2Int pos)
             => Tilemap.GetTile(TransformPosition(pos));
 
@@ -64,12 +68,12 @@ namespace AgarthaLib._2D.Grids
             => Tilemap.SetTile(TransformPosition(pos), tile);
 
         public virtual Vector3Int TransformPosition(Vector2Int pos)
-            => new(pos.x, pos.y, GetLayerInt());
+            => new(pos.x, pos.y, 0);
 
         public virtual Vector3 TransformPosition(Vector2 pos)
-            => new(pos.x, pos.y, GetLayerInt());
+            => new(pos.x, pos.y, 0);
 
-        public Dictionary<Vector2Int, TileBase> GetAllTiles(bool notNull = false)
+        public Dictionary<Vector2Int, TileBase> GetAllTiles(bool notNull = true)
         {
             var l = new Dictionary<Vector2Int, TileBase>();
             foreach (var pos in Tilemap.cellBounds.allPositionsWithin)
