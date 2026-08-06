@@ -19,10 +19,7 @@ namespace AgarthaLib.EventSystem.EventBus
                 return;
 
             foreach (var handler in handlers)
-            {
-                var eventHandler = (EventHandlerDelegate<TArgs>)handler;
-                eventHandler?.Invoke(ref args2);
-            }
+                handler?.DynamicInvoke(args2);
         }
 
         /// <inheritdoc/>
