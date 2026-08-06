@@ -6,10 +6,10 @@ using UnityEngine.Tilemaps;
 
 namespace AgarthaLib._2D.Tilemaps.RuleTiles
 {
-    [CreateAssetMenu(menuName = "AgarthaLib / Tilemaps / Blended rule tile")]
+    [CreateAssetMenu(menuName = "AgarthaLib / Tiles / Blended rule tile")]
     public class BlendedRuleTile : RuleTile
     {
-        [Header("Blending")]
+        [Header(nameof(BlendedRuleTile))]
         public bool EnableBlending = true;
         public List<string> BlendingTags = new();
         public ObjectWhitelist<string> TagWhitelist = new();
