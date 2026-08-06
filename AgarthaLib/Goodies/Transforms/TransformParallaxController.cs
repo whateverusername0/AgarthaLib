@@ -1,5 +1,4 @@
-﻿using AgarthaLib.Extensions;
-using AgarthaLib.MonoBehavior;
+﻿using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
 namespace AgarthaLib.Goodies.Transforms
@@ -26,7 +25,7 @@ namespace AgarthaLib.Goodies.Transforms
 
             var cpos = Camera.transform.position;
             var pos = (cpos - Origin) * (1f - Multiplier);
-            transform.position = pos;
+            transform.position = new(pos.x, pos.y, transform.position.z);
         }
     }
 }
