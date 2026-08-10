@@ -45,8 +45,8 @@ namespace AgarthaLib._2D.Pathfinding
             var grid = ActiveGrid;
             if (grid == null) return null;
 
-            var startInt = grid.WorldToTile(ActiveLayer, start);
-            var endInt = grid.WorldToTile(ActiveLayer, end);
+            var startInt = grid.WorldToTile(start);
+            var endInt = grid.WorldToTile(end);
 
             var path = FindPath(startInt, endInt);
             if (path == null || path.Count == 0)
@@ -54,7 +54,7 @@ namespace AgarthaLib._2D.Pathfinding
 
             var worldPath = new List<Vector2>(path.Count);
             for (int i = 0; i < path.Count; i++)
-                worldPath[i] = grid.TileToWorld(ActiveLayer, path[i]);
+                worldPath[i] = grid.TileToWorld(path[i]);
 
             return worldPath;
         }

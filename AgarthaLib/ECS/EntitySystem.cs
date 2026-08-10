@@ -1,5 +1,4 @@
-﻿using AgarthaLib.EventSystem;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace AgarthaLib.ECS

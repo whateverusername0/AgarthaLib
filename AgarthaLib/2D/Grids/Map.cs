@@ -8,6 +8,7 @@ using UnityEngine.Tilemaps;
 
 namespace AgarthaLib._2D.Grids
 {
+    [RequireComponent(typeof(Grid))]
     public abstract class Map<TGrid, TGridLayer, TLayer> : AgarthanBehaviour
         where TGrid : MapGrid<TGridLayer, TLayer>
         where TGridLayer : MapGridLayer<TLayer>
@@ -20,13 +21,15 @@ namespace AgarthaLib._2D.Grids
 
         public float ZPosition => transform.position.z;
 
-        public virtual TGrid GetOverlappingGrid(Vector2 pos)
+        public virtual TGridLayer GetOverlappingGridLayer(Vector2 pos, float radius = 0f, int layerMask = -1)
         {
-            var olc = Physics2D.OverlapCircleAll(pos, .5f)
-                .Select(q => q.GetComponent<TGridLayer>());
-            if (olc.Count() == 0) return null;
+            var z = transform.position.z;
+            var olc = radius <= 0f
+                ? Physics2D.OverlapPointAll(pos, layerMask, -z + .1f, z - .1f)
+                : Physics2D.OverlapCircleAll(pos, radius, layerMask, -z + .1f, z - .1f);
 
-            return olc.First().GetGrid() as TGrid;
+            if (olc.Length == 0) return null;
+            return olc[0].GetComponent<TGridLayer>();
         }
 
         public virtual TGrid CreateGrid(Vector3 pos, Quaternion rot, string name = "", bool isStatic = false)
@@ -53,24 +56,6 @@ namespace AgarthaLib._2D.Grids
             }
 
             return gd;
-        }
-
-        public virtual TileBase GetTile(TLayer layer, Vector2Int pos)
-        {
-            var grid = GetOverlappingGrid(pos);
-            grid = grid == null && UseGlobalGrid ? GlobalGrid : grid;
-            if (grid == null) return null;
-
-            return grid.GetTile(layer, pos);
-        }
-
-        public virtual void SetTile(TLayer layer, Vector2Int pos, TileBase tile)
-        {
-            var grid = GetOverlappingGrid(pos);
-            grid = grid == null && UseGlobalGrid ? GlobalGrid : grid;
-            grid = grid == null ? CreateGrid((Vector3Int)pos, GlobalGrid.transform.rotation) : grid;
-
-            grid.SetTile(layer, pos, tile);
         }
 
         public virtual List<TGrid> ResolveGrids()

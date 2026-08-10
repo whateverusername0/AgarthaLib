@@ -129,11 +129,11 @@ namespace AgarthaLib._2D.Grids
         public virtual bool TileExists(TLayer layer, Vector2Int pos)
             => GetTilemap(layer).TileExists(pos);
 
-        public virtual Vector2Int WorldToTile(TLayer layer, Vector2 pos)
-            => GetTilemap(layer).WorldToTile(pos);
+        public virtual Vector2Int WorldToTile(Vector2 pos)
+            => _layers.First().Value.WorldToTile(pos);
 
-        public virtual Vector2 TileToWorld(TLayer layer, Vector2Int pos)
-            => GetTilemap(layer).TileToWorld(pos);
+        public virtual Vector2 TileToWorld(Vector2Int pos)
+            => _layers.First().Value.TileToWorld(pos);
 
         public virtual void SetTile(TLayer layer, Vector2Int pos, TileBase tile)
             => GetTilemap(layer).SetTile(pos, tile);

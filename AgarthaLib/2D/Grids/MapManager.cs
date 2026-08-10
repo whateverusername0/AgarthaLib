@@ -90,6 +90,9 @@ namespace AgarthaLib._2D.Grids
 
             foreach (var tile in st)
             {
+                if (!TileQuery.ContainsKey(gridLayer))
+                    TileQuery.Add(gridLayer, new());
+
                 var position = (Vector2Int)tile.position;
                 var exists = TileQuery[gridLayer].ContainsKey(position);
 

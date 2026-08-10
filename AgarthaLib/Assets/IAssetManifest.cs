@@ -6,5 +6,7 @@ namespace AgarthaLib.Assets
     {
         T GetAsset<T>(string path) where T : Object;
         bool TryGetAsset<T>(string path, out T obj) where T : Object;
+        string GetAssetPath(Object asset);
+        bool TryGetAssetPath(Object asset, out string path);
     }
 }

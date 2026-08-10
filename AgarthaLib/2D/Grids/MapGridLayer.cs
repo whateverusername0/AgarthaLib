@@ -22,9 +22,6 @@ namespace AgarthaLib._2D.Grids
         public virtual int GetLayerInt() => (int)(object)_layer;
         public virtual void SetLayer(TLayer layer) => _layer = layer;
 
-        public virtual MapGrid<MapGridLayer<TLayer>, TLayer> GetGrid()
-            => GetComponentInParent<MapGrid<MapGridLayer<TLayer>, TLayer>>();
-
         public abstract LayerData GetLayerData();
 
         [ContextMenu("Clear Grid")]
@@ -34,8 +31,7 @@ namespace AgarthaLib._2D.Grids
         public virtual TileBase GetTile(Vector2Int pos)
             => Tilemap.GetTile(TransformPosition(pos));
 
-        public virtual TTile GetTile<TTile>(Vector2Int pos)
-            where TTile : TileBase
+        public virtual TTile GetTile<TTile>(Vector2Int pos) where TTile : class
             => GetTile(pos) as TTile;
 
         public virtual bool TryGetTile(Vector2Int pos, out TileBase tile)
@@ -66,6 +62,9 @@ namespace AgarthaLib._2D.Grids
 
         public virtual void SetTile(Vector2Int pos, TileBase tile)
             => Tilemap.SetTile(TransformPosition(pos), tile);
+
+        public virtual void RefreshTile(Vector2Int pos)
+            => Tilemap.RefreshTile(TransformPosition(pos));
 
         public virtual Vector3Int TransformPosition(Vector2Int pos)
             => new(pos.x, pos.y, 0);

@@ -2,6 +2,7 @@
 using AgarthaLib.Data.Serialization.SerializedTypes;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace AgarthaLib.Assets
@@ -10,6 +11,7 @@ namespace AgarthaLib.Assets
     {
         [SerializeField] public SerializedDictionary<string, Object> Manifest = new();
 
+        // unity can't serialize a list properly
         public string Serialize()
             => JsonConvert.SerializeObject(Manifest.Keys);
 
@@ -25,6 +27,17 @@ namespace AgarthaLib.Assets
             obj = GetAsset<T>(path);
             return obj != null;
         }
+
+        public string GetAssetPath(Object asset)
+            => Manifest.FirstOrDefault(q => q.Value == asset).Key;
+
+        public bool TryGetAssetPath(Object asset, out string path)
+        {
+            path = GetAssetPath(asset);
+            return !string.IsNullOrEmpty(path);
+        }
+
+        #region Static
 
         public static ResourcesManifest LoadFromText(string text)
         {
@@ -50,6 +63,8 @@ namespace AgarthaLib.Assets
             }
             return manifest;
         }
+
+        #endregion
     }
 }
 #endif

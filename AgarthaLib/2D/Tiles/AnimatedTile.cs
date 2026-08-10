@@ -26,7 +26,7 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
             {
                 animatedSprites = sprites,
                 animationSpeed = Animation.FPS,
-                animationStartTime = Time.time % duration
+                animationStartTime = 0 // guess what
             };
 
             return tad;
