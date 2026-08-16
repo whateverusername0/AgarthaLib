@@ -1,4 +1,5 @@
-﻿using AgarthaLib.Extensions;
+﻿using AgarthaLib.Attributes;
+using AgarthaLib.Extensions;
 using AgarthaLib.MonoBehavior;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace AgarthaLib.Goodies.Timing
         public GameObject BoundObject;
         public GameObject SpawnOnDespawn;
         public float Lifetime = 1f;
-        public float LifetimeTimer = 0f;
+        [EditorReadOnly] public float LifetimeTimer = 0f;
 
         protected override void Update()
         {
