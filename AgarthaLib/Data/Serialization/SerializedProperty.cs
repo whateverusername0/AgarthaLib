@@ -1,8 +1,7 @@
-using AgarthaLib.Data.Serialization;
 using System;
 using UnityEngine;
 
-[Serializable] public abstract class SerializedProperty<T> : MonoBehaviour, IJsonSerializable<T>
+[Serializable] public abstract class SerializedProperty<T> : MonoBehaviour
 {
     [SerializeField] protected T _value;
     public virtual T Value

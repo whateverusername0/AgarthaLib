@@ -2,7 +2,7 @@
 using AgarthaLib.EventSystem;
 using AgarthaLib.EventSystem.EventBus;
 using AgarthaLib.Extensions;
-using AgarthaLib.Goodies.Timing;
+using AgarthaLib.Logging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,6 +17,41 @@ namespace AgarthaLib.MonoBehavior
     /// </summary>
     public abstract class AgarthanBehaviour : MonoBehaviour, ILocalEventBus
     {
+        private DebugLogger __debugLogger;
+
+        protected DebugLogger _debugLogger => __debugLogger;
+
+        protected virtual void Awake()
+        {
+            __debugLogger = new DebugLogger(GetType().Name);
+        }
+
+        protected virtual void Start()
+        {
+            ValidateNull();
+            StartCoroutine(LateFixedUpdateEnumerator());
+        }
+
+        protected virtual void Update()
+        {
+            // placeholder
+        }
+
+        protected virtual void LateUpdate()
+        {
+            // placeholder
+        }
+
+        protected virtual void LateFixedUpdate()
+        {
+            // placeholder
+        }
+
+        protected virtual void OnDestroy()
+        {
+            // placeholder
+        }
+
         #region ILocalEventBus
 
         private readonly LocalEventBus _bus = new();
@@ -99,47 +134,9 @@ namespace AgarthaLib.MonoBehavior
 
         #endregion
 
-        protected virtual void Start()
-        {
-            ValidateNull();
-
-            StartCoroutine(LateFixedUpdateEnumerator());
-        }
-
-        protected virtual void Update()
-        {
-            // placeholder
-        }
-
-        protected virtual void LateUpdate()
-        {
-            // placeholder
-        }
-
-        private IEnumerator LateFixedUpdateEnumerator()
-        {
-            var wffu = new WaitForFixedUpdate();
-            while (this != null)
-            {
-                yield return wffu;
-                try { LateFixedUpdate(); }
-                catch (Exception e) { Debug.LogException(e); }
-            }
-        }
-
-        protected virtual void LateFixedUpdate()
-        {
-            // placeholder
-        }
-
-        protected virtual void OnDestroy()
-        {
-            // placeholder
-        }
-
         #region Helper Methods
 
-        [ContextMenu("Manully fill valid null fields")]
+        [ContextMenu("Manually validate null fields")]
         private void ValidateNull()
         {
             var fields = GetType().GetFields();
@@ -153,6 +150,17 @@ namespace AgarthaLib.MonoBehavior
                     var value = item.GetValue(this) as Component;
                     item.SetValue(this, value != null ? value : fallback);
                 }
+            }
+        }
+
+        private IEnumerator LateFixedUpdateEnumerator()
+        {
+            var wffu = new WaitForFixedUpdate();
+            while (this != null)
+            {
+                yield return wffu;
+                try { LateFixedUpdate(); }
+                catch (Exception e) { Debug.LogException(e); }
             }
         }
 

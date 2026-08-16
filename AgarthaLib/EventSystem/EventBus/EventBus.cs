@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AgarthaLib.Logging;
+using System;
 using System.Collections.Generic;
 
 namespace AgarthaLib.EventSystem.EventBus
@@ -6,31 +7,32 @@ namespace AgarthaLib.EventSystem.EventBus
     public class EventBus : IEventBus
     {
         private readonly Dictionary<Type, List<Delegate>> _subscriptions = new();
+        private readonly DebugLogger _logger = new("EventBus");
 
         /// <inheritdoc/>
         public void RaiseEvent<TArgs>(TArgs args) where TArgs : class
         {
             var args2 = args; // copy
-            if (_subscriptions.TryGetValue(typeof(TArgs), out var handlers))
-            {
-                foreach (var handler in handlers)
-                {
-                    var eventHandler = (EventHandlerDelegate<TArgs>)handler;
-                    eventHandler?.Invoke(ref args2);
-                }
-            }
+
+            _logger.LogInfo($"Raised new {args.GetType()} event.");
+            if (!_subscriptions.TryGetValue(args.GetType(), out var handlers))
+                return;
+
+            foreach (var handler in handlers)
+                handler?.DynamicInvoke(args2);
         }
 
         /// <inheritdoc/>
         public void RaiseEvent<TArgs>(ref TArgs args) where TArgs : class
         {
-            if (_subscriptions.TryGetValue(typeof(TArgs), out var handlers))
+            _logger.LogInfo($"Raised new {args.GetType()} event.");
+            if (!_subscriptions.TryGetValue(args.GetType(), out var handlers))
+                return;
+
+            foreach (var handler in handlers)
             {
-                foreach (var handler in handlers)
-                {
-                    var eventHandler = (EventHandlerDelegate<TArgs>)handler;
-                    eventHandler?.Invoke(ref args);
-                }
+                var eventHandler = (EventHandlerDelegate<TArgs>)handler;
+                eventHandler?.Invoke(ref args);
             }
         }
 
@@ -39,7 +41,7 @@ namespace AgarthaLib.EventSystem.EventBus
         {
             var key = typeof(TArgs);
             if (_subscriptions.ContainsKey(key) && _subscriptions[key].Contains(handler))
-                throw new Exception($"EventBus already has a handler of {handler.GetType()} for event {typeof(TArgs)}");
+                throw new($"EventBus already has a handler of {handler.GetType()} for event {typeof(TArgs)}");
 
             if (!_subscriptions.ContainsKey(key) || _subscriptions[key] == null)
                 _subscriptions[key] = new List<Delegate>();

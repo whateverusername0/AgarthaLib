@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace AgarthaLib.Data.Serialization.SerializedTypes
@@ -18,13 +21,16 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
 
         public Dictionary<K, V> Dictionary => EnsureNotNull();
         private Dictionary<K, V> EnsureNotNull()
-        {
-            if (_dictionary == null) _dictionary = new();
-            return _dictionary;
-        }
+            => _dictionary ??= new();
 
         public SerializedDictionary()
             => _dictionary = new();
+
+        public SerializedDictionary(Dictionary<K, V> old) : this()
+        {
+            foreach (var kvp in old)
+                Add(kvp.Key, kvp.Value);
+        }
 
         public SerializedDictionary(int capacity, IEqualityComparer<K> comparer = null)
             => _dictionary = new(capacity, comparer ?? EqualityComparer<K>.Default);
@@ -37,7 +43,7 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
         {
             Dictionary.Clear();
 
-            if (Data == null || Dictionary == null) return;
+            if (Data == null) return;
             foreach (var kvp in Data)
             {
                 if (kvp.Key == null) continue;
@@ -59,7 +65,6 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
 
         public void Add(K key, V value)
         {
-           
             Dictionary.Add(key, value);
             Data.Add(new SerializedKeyValuePair<K, V>(key, value));
         }
@@ -117,5 +122,39 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
         }
 
         #endregion
+
+        [ContextMenu("Fill with blanks")]
+        public void FillWithBlanks()
+        {
+            Dictionary.Clear();
+
+            if (typeof(K).IsEnum)
+            {
+                var values = Enum.GetValues(typeof(K));
+                foreach (var v in values)
+                    Dictionary.Add((K)v, default);
+            }
+        }
     }
+
+#if UNITY_EDITOR
+    [CustomPropertyDrawer(typeof(SerializedDictionary<,>), true)]
+    public class SerializedDictionaryDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.BeginProperty(position, label, property);
+
+            var dataProperty = property.FindPropertyRelative("_data");
+            EditorGUI.PropertyField(position, dataProperty ?? property, label, true);
+            EditorGUI.EndProperty();
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            var dataProperty = property.FindPropertyRelative("_data");
+            return EditorGUI.GetPropertyHeight(dataProperty ?? property, label, true);
+        }
+    }
+#endif
 }

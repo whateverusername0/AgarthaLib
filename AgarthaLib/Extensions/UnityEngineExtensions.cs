@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Tilemaps;
 
 namespace AgarthaLib.Extensions
 {
@@ -78,7 +79,7 @@ namespace AgarthaLib.Extensions
         public static T EnsureComponent<T>(this GameObject @object) where T : Component
         {
             var c = @object.GetComponent<T>();
-            if (!c) return @object.AddComponent<T>();
+            if (c == null) return @object.AddComponent<T>();
             return c;
         }
 
@@ -126,6 +127,9 @@ namespace AgarthaLib.Extensions
         public static bool TryFindChild(this Transform t, string name, out Transform child)
             => (child = t.Find(name)) != null;
 
+        public static GameObject EnsureChild(this GameObject go, string name)
+            => go.transform.EnsureChild(name).gameObject;
+
         public static Transform EnsureChild(this Transform t, string name)
         {
             if (t.TryFindChild(name, out var tr))
@@ -170,9 +174,6 @@ namespace AgarthaLib.Extensions
 
         #region Rendering
 
-        public static bool IsInLayerMask(this GameObject @object, LayerMask lm)
-            => lm == (lm | (1 << @object.layer));
-
         // TODO: move to it's own file
         public static bool IsVisibleFrom(this Bounds bounds, Camera camera)
         {
@@ -200,10 +201,80 @@ namespace AgarthaLib.Extensions
 
         #endregion
 
-        #region Uncategorized
+        #region Layer Masks
+
+        public static bool IsInLayerMask(this GameObject @object, LayerMask lm)
+            => lm == (lm | (1 << @object.layer));
 
         public static bool IsInLayerMask(this LayerMask lm, int layer)
             => lm == (lm | (1 << layer));
+
+        public static LayerMask Inverted(this LayerMask lm)
+            => ~lm;
+
+        public static LayerMask And(this LayerMask lm, LayerMask other)
+            => lm | other;
+
+        #endregion
+
+        #region Uncategorized
+
+        public static List<Vector3Int> GetAllTilesPositions(this Tilemap tilemap)
+        {
+            var l = new List<Vector3Int>();
+            var bounds = tilemap.cellBounds;
+            for (int z = bounds.zMin; z < bounds.zMax; z++)
+                for (int y = bounds.yMin; y < bounds.yMax; y++)
+                    for (int x = bounds.xMin; x < bounds.xMax; x++)
+                        if (tilemap.GetTile(new(x, y, z)) != null)
+                            l.Add(new(x, y, z)); // stairway to heaven but downwards
+            return l;
+        }
+
+        #endregion
+
+        #region Graphics
+
+        private static Mesh _graphicsQuad = new()
+        {
+            vertices = new Vector3[]
+            {
+                new(-.5f, -.5f, 0),
+                new(-.5f, +.5f, 0),
+                new(+.5f, +.5f, 0),
+                new(+.5f, -.5f, 0),
+            },
+            normals = new[]
+            {
+                Vector3.forward,
+                Vector3.forward,
+                Vector3.forward,
+                Vector3.forward,
+            },
+            triangles = new[] { 0, 1, 2, 2, 3, 0 },
+            uv = new[]
+            {
+                new Vector2(0, 0),
+                new Vector2(0, 1),
+                new Vector2(1, 1),
+                new Vector2(1, 0),
+            },
+        };
+
+        public static void Graphics_DrawSprite(Sprite sprite, Color color, ref RenderParams rparams,
+            Vector3 position, Quaternion rotation, Vector3 scale)
+        {
+            var mpb = rparams.matProps == null ? new MaterialPropertyBlock() : rparams.matProps;
+            mpb.SetTexture("_MainTex", sprite.texture);
+            mpb.SetColor("_Color", color);
+
+            float width = sprite.textureRect.width;
+            float height = sprite.textureRect.height;
+            scale = scale.Multiply(new Vector3(width, height, 1) / sprite.pixelsPerUnit);
+
+            var matrix = Matrix4x4.TRS(position, rotation, scale);
+            Graphics.RenderMesh(rparams, _graphicsQuad, 0, matrix);
+        }
 
         #endregion
     }

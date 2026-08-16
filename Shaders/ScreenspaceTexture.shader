@@ -1,10 +1,10 @@
-Shader "AgarthaLib / ScreenspaceTexture"
+Shader "AgarthaLib/ScreenspaceTexture"
 {
 	Properties
 	{
-		_Color("Tint", Color) = (1, 1, 1, 1)
-        _MainTex("Texture", 2D) = "white" {}
-		_Blend("Blend", Range(0, 1)) = 0
+		_Color("_Color", Color) = (1, 1, 1, 1)
+        _MainTex("_MainTex", 2D) = "white" {}
+		_Blend("_Blend", Range(0, 1)) = 0
 	}
 	SubShader
 	{

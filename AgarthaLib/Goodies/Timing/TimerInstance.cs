@@ -7,6 +7,7 @@ namespace AgarthaLib.Goodies.Timing
         public float Delay;
         public float Timer;
         public Action Action;
+        public bool DoOnce = true;
 
         public TimerInstance(float delay, Action action)
         {

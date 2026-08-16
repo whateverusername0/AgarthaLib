@@ -6,10 +6,9 @@ using UnityEngine;
 namespace AgarthaLib.MonoBehavior
 {
     /// <summary>
-    ///     Base class for everything you want to have a single examplar and direct access of.
-    ///     Implements <see cref="AgarthanBehaviour"/>!
+    ///     Does not relate to <see cref="AgarthanSingleton{T}"/>.
     /// </summary>
-    public abstract class AgarthanSingleton<T> : AgarthanBehaviour where T : AgarthanSingleton<T>
+    public class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
     {
         private static T _instance;
         public static T Instance
@@ -30,10 +29,8 @@ namespace AgarthaLib.MonoBehavior
             }
         }
 
-        protected override void Awake()
+        protected virtual void Awake()
         {
-            base.Awake();
-
             if (_instance == null)
             {
                 _instance = (T)this;

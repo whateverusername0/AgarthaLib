@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Collections.Generic;
 using AgarthaLib.Data;
 using UnityEngine.Tilemaps;
+using UnityEditor.Sprites;
+
 
 
 #if UNITY_EDITOR
@@ -128,8 +130,22 @@ namespace AgarthaLib.Attributes
             switch (@object)
             {
                 case Sprite sprite:
-                    if (sprite != null)
-                        texture = sprite.texture;
+                    {
+                        if (sprite == null) break;
+                        try
+                        {
+                            var t = sprite.texture;
+                            var r = sprite.textureRect;
+                            var st = new Texture2D((int)r.width, (int)r.height);
+                            var pixels = t.GetPixels((int)r.x, (int)r.y, (int)r.width, (int)r.height);
+
+                            st.SetPixels(pixels);
+                            st.Apply();
+
+                            texture = st;
+                        }
+                        catch { texture = sprite.texture; }
+                    }
                     break;
 
                 case Texture2D tex2d:
