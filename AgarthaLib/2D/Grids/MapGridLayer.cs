@@ -101,9 +101,10 @@ namespace AgarthaLib._2D.Grids
         }
 
         public Dictionary<Vector2Int, TileBase> GetAdjacentTiles(Vector2Int position, bool allowDiagonal)
-            => (Dictionary<Vector2Int, TileBase>)GetTilesInRange(position, 1)
+            => GetTilesInRange(position, 1)
             .Where(q => allowDiagonal || q.Key.magnitude <= 1)
-            .Where(q => q.Key != position);
+            .Where(q => q.Key != position)
+            .ToDictionary(q => q.Key, q => q.Value);
 
         public Dictionary<Vector2Int, TileBase> GetConnectedTiles(Vector2Int position,TileBase tile,
             bool allowDiagonal)

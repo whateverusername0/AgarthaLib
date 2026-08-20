@@ -1,4 +1,5 @@
-﻿using AgarthaLib.Attributes;
+﻿using AgarthaLib._2D.Tiles;
+using AgarthaLib.Attributes;
 using AgarthaLib.Collision;
 using AgarthaLib.Data.Serialization.SerializedTypes;
 using AgarthaLib.Extensions;
@@ -135,8 +136,44 @@ namespace AgarthaLib._2D.Grids
         public virtual Vector2 TileToWorld(Vector2Int pos)
             => _layers.First().Value.TileToWorld(pos);
 
-        public virtual void SetTile(TLayer layer, Vector2Int pos, TileBase tile)
-            => GetTilemap(layer).SetTile(pos, tile);
+        public virtual void SetTile(TLayer layer, Vector2Int pos, TileBase tile,
+            bool handleMulticell = true)
+        {
+            GetTilemap(layer).SetTile(pos, tile);
+            if (handleMulticell) HandleMulticell(layer, pos, tile);
+        }
+
+        protected virtual void HandleMulticell(TLayer layer, Vector2Int pos, TileBase @override)
+        {
+            var existing = GetTile<MulticellDataTile>(layer, pos);
+            if (existing == null) return;
+
+            var parentPos = existing.ParentPosition;
+            var mt = existing as MulticellTile;
+
+            RectInt? shape = mt != null ? mt.Shape : null;
+            var prefabInst = mt != null ? mt.PrefabReference : null;
+
+            if (parentPos != null)
+            {
+                // prefer handling parent cell
+                HandleMulticell(layer, (Vector2Int)parentPos.Value, @override);
+                return;
+            }
+
+            if (shape != null)
+            {
+                // override but without checking
+                foreach (var p in shape.Value.allPositionsWithin)
+                    SetTile(layer, p, @override, handleMulticell: false);
+            }
+
+            if (prefabInst != null)
+            {
+                // multiblock is gone - kill inst
+                this.SafeDestroy(prefabInst);
+            }
+        }
 
         public Dictionary<Vector2Int, TileBase> GetAllTiles(TLayer layer, bool notNull = false)
             => GetTilemap(layer).GetAllTiles(notNull);
@@ -162,7 +199,15 @@ namespace AgarthaLib._2D.Grids
         {
             var layers = GetAllTilesOn(position);
             if (layers == null || layers.Count == 0) return null;
-            return layers.Last(); // it's ordered by ascending
+            return layers.LastOrDefault(q => q.tile != null); // it's ordered by ascending
+        }
+
+        public (TLayer later, Vector2Int position, T tile)? GetHighestTile<T>(Vector2Int position)
+            where T : TileBase
+        {
+            var all = GetAllTilesOn(position);
+            if (all == null || all.Count == 0) return null;
+            return ((TLayer later, Vector2Int position, T tile)?)all.LastOrDefault(q => q.tile is T);
         }
 
         public List<(TLayer layer, Vector2Int position, TileBase tile)> GetAllTilesOn(Vector2Int position)

@@ -23,18 +23,28 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
             return rt != null && rt.GetTileAnimationData(pos, it, ref tad);
         }
 
-        public override void GetTileData(Vector3Int position, ITilemap it, ref TileData td)
+        public override void GetTileData(Vector3Int pos, ITilemap it, ref TileData td)
         {
             var rt = GetTileReference();
-            if (rt != null) rt.GetTileData(position, it, ref td);
-            else base.GetTileData(position, it, ref td);
+            if (rt != null) rt.GetTileData(pos, it, ref td);
+            else base.GetTileData(pos, it, ref td);
         }
 
-        public override void RefreshTile(Vector3Int position, ITilemap it)
+        private readonly Vector3Int[] _neighborPositions = new Vector3Int[]
+        {
+            new(-1, 1, 0),  new(0, 1, 0),  new(1, 1, 0),
+            new(-1, 0, 0), new(1, 0, 0),
+            new(-1, -1, 0), new(0, -1, 0), new(1, -1, 0)
+        };
+
+        public override void RefreshTile(Vector3Int pos, ITilemap it)
         {
             var rt = GetTileReference();
-            if (rt != null) rt.RefreshTile(position, it);
-            else base.RefreshTile(position, it);
+            if (rt != null) rt.RefreshTile(pos, it);
+            else base.RefreshTile(pos, it);
+
+            foreach (var neighbor in _neighborPositions)
+                it.RefreshTile(pos + neighbor);
         }
     }
 }
