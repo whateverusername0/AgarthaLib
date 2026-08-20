@@ -1,6 +1,7 @@
-﻿#if USING_NEWTONSOFT_JSON
-using AgarthaLib.Data.Serialization.SerializedTypes;
+﻿using AgarthaLib.Data.Serialization.SerializedTypes;
+#if USING_NEWTONSOFT_JSON
 using Newtonsoft.Json;
+#endif
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,9 +12,11 @@ namespace AgarthaLib.Assets
     {
         [SerializeField] public SerializedDictionary<string, Object> Manifest = new();
 
+#if USING_NEWTONSOFT_JSON
         // unity can't serialize a list properly
         public string Serialize()
             => JsonConvert.SerializeObject(Manifest.Keys);
+#endif
 
         public T GetAsset<T>(string path) where T : Object
         {
@@ -45,6 +48,7 @@ namespace AgarthaLib.Assets
 
         #region Static
 
+#if USING_NEWTONSOFT_JSON
         public static ResourcesManifest LoadFromText(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -57,6 +61,7 @@ namespace AgarthaLib.Assets
             inst.Manifest = new(GetManifestRaw(paths));
             return inst;
         }
+#endif
 
         public static Dictionary<string, Object> GetManifestRaw(List<string> paths)
         {
@@ -70,7 +75,6 @@ namespace AgarthaLib.Assets
             return manifest;
         }
 
-        #endregion
+#endregion
     }
 }
-#endif

@@ -29,7 +29,7 @@ namespace AgarthaLib.Extensions
             Vector3 position, Quaternion rotation) where T : UnityEngine.Component
         {
             var inst = UnityEngine.Object.Instantiate(original, position, rotation);
-            if (inst.TryGetComponent<T>(out var c))
+            if (inst.TryGetComponentInChildren<T>(out var c))
                 return c;
 
             inst.SafeDestroy(inst);

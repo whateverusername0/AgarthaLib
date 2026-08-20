@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AgarthaLib.Assets.AgarthaLib.AgarthaLib.Assets
+namespace AgarthaLib.Assets
 {
     public class AssetManager : AgarthanSingleton<AssetManager>, IAssetManifest
     {
