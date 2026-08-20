@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace AgarthaLib.Data.JSON
@@ -27,7 +28,7 @@ namespace AgarthaLib.Data.JSON
         {
             // serializing like a normal class because instanceId sucks!
             var t = JToken.FromObject(value);
-            t.WriteTo(writer);
+            t.WriteTo(writer, serializer.Converters.ToArray());
         }
     }
 }

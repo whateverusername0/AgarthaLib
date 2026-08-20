@@ -19,6 +19,7 @@ namespace AgarthaLib.Assets
         {
             var value = Manifest[path];
             if (value == null) value = Resources.Load<T>(path);
+            if (value == null) value = Manifest.FirstOrDefault(q => q.Value.GetType() == typeof(T)).Value;
             return value as T;
         }
 
@@ -29,7 +30,12 @@ namespace AgarthaLib.Assets
         }
 
         public string GetAssetPath(Object asset)
-            => Manifest.FirstOrDefault(q => q.Value == asset).Key;
+        {
+            var path = Manifest.FirstOrDefault(q => q.Value == asset).Key;
+            if (string.IsNullOrWhiteSpace(path))
+                path = Manifest.FirstOrDefault(q => q.Value.GetType() == asset.GetType()).Key;
+            return path;
+        }
 
         public bool TryGetAssetPath(Object asset, out string path)
         {
