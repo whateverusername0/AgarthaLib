@@ -13,6 +13,7 @@ namespace AgarthaLib.Extensions
 
         public static void SafeDestroy(this UnityEngine.Object _, UnityEngine.Object obj)
         {
+            if (obj == null) return;
             if (Application.isPlaying) UnityEngine.Object.Destroy(obj);
             else UnityEngine.Object.DestroyImmediate(obj);
         }
@@ -230,6 +231,9 @@ namespace AgarthaLib.Extensions
                             l.Add(new(x, y, z)); // stairway to heaven but downwards
             return l;
         }
+
+        public static Tilemap GetTilemap(this ITilemap it)
+            => it.GetComponent<Tilemap>();
 
         #endregion
 
