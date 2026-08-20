@@ -13,10 +13,21 @@ namespace AgarthaLib.Extensions
         public static float Loop(this float f, float loop)
             => f >= loop ? f - loop : (f <= -loop ? f + loop : f);
 
+        public static int Loop(this int f, int loop)
+            => f >= loop ? f - loop : (f <= -loop ? f + loop : f);
+
         public static float RecursiveLoop(this float f, float loop)
         {
             var result = f.Loop(loop);
-            if (f > loop || f < -loop)
+            if (f >= loop || f <= -loop)
+                return result.RecursiveLoop(loop);
+            return result;
+        }
+
+        public static int RecursiveLoop(this int f, int loop)
+        {
+            var result = f.Loop(loop);
+            if (f >= loop || f <= -loop)
                 return result.RecursiveLoop(loop);
             return result;
         }

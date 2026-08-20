@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 namespace AgarthaLib._2D.Grids
 {
@@ -19,6 +18,7 @@ namespace AgarthaLib._2D.Grids
         public bool UseGlobalGrid = false;
         public TGrid GlobalGrid;
 
+        protected virtual Grid _grid => GetComponent<Grid>();
         public float ZPosition => transform.position.z;
 
         public virtual TGridLayer GetOverlappingGridLayer(Vector2 pos, float radius = 0f, int layerMask = -1)
@@ -68,5 +68,8 @@ namespace AgarthaLib._2D.Grids
         }
 
         public abstract void MakeActive();
+
+        public virtual Vector3 ToWorldPosition(Vector2Int pos)
+            => _grid.GetCellCenterWorld(new(pos.x, pos.y, Mathf.FloorToInt(ZPosition)));
     }
 }

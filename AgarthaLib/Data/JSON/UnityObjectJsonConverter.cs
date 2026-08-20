@@ -2,20 +2,27 @@
 using AgarthaLib.Assets;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace AgarthaLib.Data.JSON
 {
-    public class UnityObjectJsonConverter<T> : JsonConverter<T> where T : UnityEngine.Object
+    public class UnityObjectJsonConverter<T> : JsonConverter where T : UnityEngine.Object
     {
         public IAssetManifest Manifest;
 
         public UnityObjectJsonConverter(IAssetManifest manifest)
             => Manifest = manifest;
 
-        public override T ReadJson(JsonReader reader, Type objectType, T existingValue,
-            bool hasExistingValue, JsonSerializer serializer)
+        public override bool CanConvert(Type objectType)
+        {
+            var t = typeof(T);
+            var tr = t.IsAssignableFrom(objectType) || objectType.IsAssignableFrom(t);
+            return tr;
+        }
+        //=> typeof(T).IsAssignableFrom(objectType)
+        //|| objectType.IsAssignableFrom(typeof(T));
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
+            JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null) return null;
 
@@ -26,7 +33,7 @@ namespace AgarthaLib.Data.JSON
             return asset;
         }
 
-        public override void WriteJson(JsonWriter writer, T value,
+        public override void WriteJson(JsonWriter writer, object value,
             JsonSerializer serializer)
         {
             if (value == null || Manifest == null)
@@ -35,7 +42,7 @@ namespace AgarthaLib.Data.JSON
                 return;
             }
 
-            writer.WriteValue(Manifest.GetAssetPath(value));
+            writer.WriteValue(Manifest.GetAssetPath(value as T));
         }
     }
 }

@@ -29,5 +29,18 @@ namespace AgarthaLib._2D.Grids
                 _ => new(0, 0),
             };
         }
+
+        public static Direction Reverse(this Direction o)
+        {
+            return o switch
+            {
+                Direction.North => Direction.South,
+                Direction.South => Direction.North,
+                Direction.East => Direction.West,
+                Direction.West => Direction.East,
+                Direction.Any => Direction.Any,
+                _ => Direction.Any
+            };
+        }
     }
 }
