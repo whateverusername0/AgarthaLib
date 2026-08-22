@@ -93,7 +93,7 @@ namespace AgarthaLib.Animation
             {
                 _animationTime = 0f;
                 _currentFrame += 1;
-                HandleFrame(_currentFrame);
+                HandleFrame(_currentFrame); // todo fix first frame being unaccounted for
 
                 if (_currentFrame >= anim.Frames.Count)
                 {
