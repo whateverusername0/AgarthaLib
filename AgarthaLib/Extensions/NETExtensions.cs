@@ -118,6 +118,9 @@ namespace AgarthaLib.Extensions
             return values.ToArray();
         }
 
+        public static TEnum MaxEnum<TEnum>() where TEnum : Enum
+            => Enum.GetValues(typeof(TEnum)).Cast<TEnum>().Max();
+
         public static IEnumerable<Type> GetAllDerivatives(this Type t)
         {
             return AppDomain.CurrentDomain.GetAssemblies()
