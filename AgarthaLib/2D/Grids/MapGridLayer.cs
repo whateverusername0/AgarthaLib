@@ -100,11 +100,32 @@ namespace AgarthaLib._2D.Grids
             return l;
         }
 
+        private readonly Vector3Int[] _neighborPositions = new Vector3Int[]
+        {
+            new(0, 1, 0), new(-1, 0, 0), new(1, 0, 0), new(0, -1, 0),
+        };
+
+        private readonly Vector3Int[] _neighborPositionsDiagonal = new Vector3Int[]
+        {
+            new(-1, 1, 0),  new(0, 1, 0),  new(1, 1, 0),
+            new(-1, 0, 0), new(1, 0, 0),
+            new(-1, -1, 0), new(0, -1, 0), new(1, -1, 0)
+        };
+
         public Dictionary<Vector2Int, TileBase> GetAdjacentTiles(Vector2Int position, bool allowDiagonal)
-            => GetTilesInRange(position, 1)
-            .Where(q => allowDiagonal || q.Key.magnitude <= 1)
-            .Where(q => q.Key != position)
-            .ToDictionary(q => q.Key, q => q.Value);
+        {
+            var query = allowDiagonal ? _neighborPositionsDiagonal : _neighborPositions;
+            var d = new Dictionary<Vector2Int, TileBase>();
+            foreach (var pos in query)
+            {
+                var p = position + (Vector2Int)pos;
+                var tile = GetTile(p);
+                if (tile == null) continue;
+                d.Add(p, tile);
+            }
+
+            return d;
+        }
 
         public Dictionary<Vector2Int, TileBase> GetConnectedTiles(Vector2Int position,TileBase tile,
             bool allowDiagonal)
