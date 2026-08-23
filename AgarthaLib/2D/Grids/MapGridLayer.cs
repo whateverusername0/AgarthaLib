@@ -13,7 +13,7 @@ namespace AgarthaLib._2D.Grids
     public abstract class MapGridLayer<TLayer> : AgarthanBehaviour
         where TLayer : Enum
     {
-        [SerializeField, EditorReadOnly, ValidateNull]
+        [EditorReadOnly, ValidateNull]
         public Tilemap Tilemap;
 
         [SerializeField, EditorReadOnly] protected TLayer _layer;
@@ -24,8 +24,7 @@ namespace AgarthaLib._2D.Grids
 
         public abstract LayerData GetLayerData();
 
-        [ContextMenu("Clear Grid")]
-        public void Clear()
+        public virtual void Clear()
             => Tilemap.ClearAllTiles();
 
         public virtual TileBase GetTile(Vector2Int pos)
@@ -72,98 +71,24 @@ namespace AgarthaLib._2D.Grids
         public virtual Vector3 TransformPosition(Vector2 pos)
             => new(pos.x, pos.y, 0);
 
-        public Dictionary<Vector2Int, TileBase> GetAllTiles(bool notNull = true)
-        {
-            var l = new Dictionary<Vector2Int, TileBase>();
-            foreach (var pos in Tilemap.cellBounds.allPositionsWithin)
-            {
-                var tile = GetTile((Vector2Int)pos);
-                if (notNull && tile == null) continue;
-                l.Add((Vector2Int)pos, tile);
-            }
-            return l;
-        }
+        public virtual Dictionary<Vector2Int, TileBase> GetAllTiles(bool notNull = true)
+            => Tilemap.GetAllTiles(notNull)
+            .ToDictionary(q => (Vector2Int)q.Key, q => q.Value);
 
-        public Dictionary<Vector2Int, T> GetAllTilesOfType<T>() where T : TileBase
-        {
-            var d = GetAllTiles(true).Where(q => q.Value.GetType() == typeof(T));
-            return (Dictionary<Vector2Int, T>)d.Select(q => (q.Key, q.Value as T));
-        }
+        public virtual Dictionary<Vector2Int, T> GetAllTilesOfType<T>() where T : TileBase
+            => Tilemap.GetAllTilesOfType<T>()
+            .ToDictionary(q => (Vector2Int)q.Key, q => q.Value);
 
         public Dictionary<Vector2Int, TileBase> GetTilesInRange(Vector2Int position, int range)
-        {
-            var l = new Dictionary<Vector2Int, TileBase>();
-            for (int x = position.x - range; x <= position.x + range; x++)
-                for (int y = position.y - range; y <= position.y + range; y++)
-                    l.Add(new(x, y), GetTile(new(x, y)));
-
-            return l;
-        }
-
-        private readonly Vector3Int[] _neighborPositions = new Vector3Int[]
-        {
-            new(0, 1, 0), new(-1, 0, 0), new(1, 0, 0), new(0, -1, 0),
-        };
-
-        private readonly Vector3Int[] _neighborPositionsDiagonal = new Vector3Int[]
-        {
-            new(-1, 1, 0),  new(0, 1, 0),  new(1, 1, 0),
-            new(-1, 0, 0), new(1, 0, 0),
-            new(-1, -1, 0), new(0, -1, 0), new(1, -1, 0)
-        };
+            => Tilemap.GetTilesInRange((Vector3Int)position, range)
+            .ToDictionary(q => (Vector2Int)q.Key, q => q.Value);
 
         public Dictionary<Vector2Int, TileBase> GetAdjacentTiles(Vector2Int position, bool allowDiagonal)
-        {
-            var query = allowDiagonal ? _neighborPositionsDiagonal : _neighborPositions;
-            var d = new Dictionary<Vector2Int, TileBase>();
-            foreach (var pos in query)
-            {
-                var p = position + (Vector2Int)pos;
-                var tile = GetTile(p);
-                if (tile == null) continue;
-                d.Add(p, tile);
-            }
+            => Tilemap.GetAdjacentTiles((Vector3Int)position, allowDiagonal)
+            .ToDictionary(q => (Vector2Int)q.Key, q => q.Value);
 
-            return d;
-        }
-
-        public Dictionary<Vector2Int, TileBase> GetConnectedTiles(Vector2Int position,TileBase tile,
-            bool allowDiagonal)
-        {
-            var l = new Dictionary<Vector2Int, TileBase>();
-
-            var startTile = GetTile(position);
-            var targetTile = tile != null ? tile : startTile;
-            if (startTile != targetTile || startTile == null)
-                return new();
-
-            var queue = new Queue<Vector2Int>();
-            var visited = new HashSet<Vector2Int>();
-
-            queue.Enqueue(position);
-            visited.Add(position);
-
-            while (queue.Count > 0)
-            {
-                var currentPos = queue.Dequeue();
-                var currentTile = GetTile(currentPos);
-
-                l.Add(currentPos, currentTile);
-
-                foreach (var neighbor in GetAdjacentTiles(currentPos, allowDiagonal))
-                {
-                    var neighborPos = neighbor.Key;
-
-                    if (!Tilemap.cellBounds.Contains(TransformPosition(neighborPos))
-                    || !visited.Add(neighborPos))
-                        continue;
-
-                    if (neighbor.Value == targetTile)
-                        queue.Enqueue(neighborPos);
-                }
-            }
-
-            return l;
-        }
+        public Dictionary<Vector2Int, TileBase> GetConnectedTiles(Vector2Int position, TileBase tile, bool allowDiagonal)
+            => Tilemap.GetConnectedTiles((Vector3Int)position, tile, allowDiagonal)
+            .ToDictionary(q => (Vector2Int)q.Key, q => q.Value);
     }
 }

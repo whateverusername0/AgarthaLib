@@ -130,8 +130,7 @@ namespace AgarthaLib._2D.Grids
         }
 
         public virtual IEnumerable<(TGridLayer layer, Vector2Int pos, TileBase tile)> GetQueryFlattened()
-            => TileQuery.SelectMany(
-                layer => layer.Value,
+            => TileQuery.SelectMany(layer => layer.Value,
                 (layerKvp, tileKvp) => (layerKvp.Key, tileKvp.Key, tileKvp.Value)
             );
 
