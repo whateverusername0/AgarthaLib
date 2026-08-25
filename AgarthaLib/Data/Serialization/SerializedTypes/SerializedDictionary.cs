@@ -70,7 +70,7 @@ namespace AgarthaLib.Data.Serialization.SerializedTypes
         }
 
         public bool ContainsKey(K key)
-            => Dictionary.ContainsKey(key);
+            => key != null && Dictionary.ContainsKey(key);
 
         public bool Remove(K key)
         {
