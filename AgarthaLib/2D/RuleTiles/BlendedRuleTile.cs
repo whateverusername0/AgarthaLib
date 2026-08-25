@@ -1,4 +1,5 @@
 ﻿#if USING_TILEMAP_EXTRAS
+using AgarthaLib._2D.Tiles;
 using AgarthaLib.Data;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
             {
                 case RuleOverrideTile rot:
                     other = rot.m_InstanceTile; break;
-                case AgarthanTileBase atb:
+                case ReferenceTile atb:
                     other = atb.TileReference; break;
                 default: break;
             }

@@ -7,6 +7,7 @@ namespace AgarthaLib._2D.Tiles
     public class MulticellDataTile : TileBase
     {
         [EditorReadOnly] public Vector3Int? ParentPosition;
-        public GameObject PrefabReference;
+        [SerializeField] protected GameObject _prefabReference;
+        [EditorReadOnly] public GameObject PrefabInstance;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AgarthaLib._2D.Grids;
+using AgarthaLib.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,9 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
         public Direction Back = Direction.Any;
         public Direction Front = Direction.South;
         public List<DirectionTileBaseRule> Rules = new();
+
+        [SerializeField] private GameObject _prefabReferenceOverride;
+        [EditorReadOnly] public GameObject PrefabInstance;
 
         public TileBase GetTile(Direction front, Direction back)
         {
@@ -38,6 +42,9 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
         {
             if (TryGetTile(Front, Back, out var tile))
                 tile.GetTileData(pos, it, ref td);
+
+            if (_prefabReferenceOverride != null)
+                td.gameObject = _prefabReferenceOverride;
         }
 
         public override void RefreshTile(Vector3Int pos, ITilemap it)
@@ -48,7 +55,13 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
         }
 
         public override bool StartUp(Vector3Int position, ITilemap tilemap, GameObject go)
-            => TryGetTile(Front, Back, out var tile) && tile.StartUp(position, tilemap, go);
+        {
+            if (!TryGetTile(Front, Back, out var tile) || !tile.StartUp(position, tilemap, go))
+                return false;
+
+            PrefabInstance = go;
+            return true;
+        }
     }
 
     [Serializable] public class DirectionTileBaseRule

@@ -1,6 +1,7 @@
 ﻿using AgarthaLib.Animation.Sprites;
 using AgarthaLib.Attributes;
 using AgarthaLib.Data;
+using AgarthaLib.Extensions;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -15,6 +16,8 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
 
         [Header(nameof(AnimatedTile))]
         public SpriteAnimation Animation;
+        [SerializeField] private GameObject _prefabReference;
+        [EditorReadOnly] public GameObject PrefabInstance;
 
         public TileAnimationData GetAnimationData()
         {
@@ -52,6 +55,20 @@ namespace AgarthaLib._2D.Tilemaps.RuleTiles
             }
 
             tileData.sprite = Animation.Frames[0];
+            tileData.gameObject = _prefabReference;
+        }
+
+        public override bool StartUp(Vector3Int pos, ITilemap it, GameObject go)
+        {
+            PrefabInstance = go;
+            if (PrefabInstance == null)
+                return false;
+
+            if (PrefabInstance.TryGetComponent<SpriteRenderer>(out var sr)
+            && it.GetTilemap().TryGetComponent<TilemapRenderer>(out var tr))
+                sr.sortingOrder = tr.sortingOrder;
+
+            return true;
         }
     }
 }

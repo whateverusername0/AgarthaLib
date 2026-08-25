@@ -9,13 +9,24 @@ namespace AgarthaLib._2D.Tiles
     {
         public RectInt Shape;
 
+        public override void GetTileData(Vector3Int position, ITilemap tilemap, ref TileData tileData)
+        {
+            base.GetTileData(position, tilemap, ref tileData);
+
+            tileData.gameObject = _prefabReference;
+        }
+
         public override bool StartUp(Vector3Int pos, ITilemap it, GameObject go)
         {
             var tilemap = it.GetTilemap();
 
-            var prefabRef = PrefabReference != null
-                ? Instantiate(PrefabReference, tilemap.transform)
-                : null;
+            PrefabInstance = go;
+            if (PrefabInstance == null)
+                return false;
+
+            if (PrefabInstance.TryGetComponent<SpriteRenderer>(out var sr)
+            && it.GetTilemap().TryGetComponent<TilemapRenderer>(out var tr))
+                sr.sortingOrder = tr.sortingOrder;
 
             foreach (var s in Shape.allPositionsWithin)
             {
@@ -23,7 +34,7 @@ namespace AgarthaLib._2D.Tiles
                 var child = CreateInstance<MulticellDataTile>();
                 child.name = $"{name} (Data)";
                 child.ParentPosition = pos;
-                child.PrefabReference = prefabRef;
+                child.PrefabInstance = go;
 
                 tilemap.SetTile(new Vector3Int(s.x, s.y, pos.z), child);
             }

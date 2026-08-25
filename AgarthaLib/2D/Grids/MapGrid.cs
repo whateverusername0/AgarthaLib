@@ -152,7 +152,7 @@ namespace AgarthaLib._2D.Grids
             var mt = existing as MulticellTile;
 
             RectInt? shape = mt != null ? mt.Shape : null;
-            var prefabInst = mt != null ? mt.PrefabReference : null;
+            var prefabInst = mt != null ? mt.PrefabInstance : null;
 
             if (parentPos != null)
             {
