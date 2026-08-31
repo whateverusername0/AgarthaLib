@@ -54,6 +54,9 @@ namespace AgarthaLib.MonoBehavior
             // override
             this.SafeDestroy(_instance);
             _instance = (T)this;
+
+            if (this is IDoNotDestroyOnLoad)
+                DontDestroyOnLoad(this);
         }
     }
 }

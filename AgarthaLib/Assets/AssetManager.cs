@@ -30,6 +30,18 @@ namespace AgarthaLib.Assets
             }
         }
 
+        public List<T> GetAllAssets<T>(string path) where T : Object
+        {
+            if (Manifests.Count == 0) ResolveManifests();
+            var l = new List<T>();
+            foreach (var manifest in Manifests)
+            {
+                var assets = manifest.GetAllAssets<T>(path);
+                if (assets != null) l.AddRange(assets);
+            }
+            return l;
+        }
+
         public T GetAsset<T>(string path) where T : Object
         {
             if (Manifests.Count == 0) ResolveManifests();

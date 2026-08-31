@@ -10,13 +10,16 @@ namespace AgarthaLib.Assets
 {
     public class ResourcesManifest : ScriptableObject, IAssetManifest
     {
-        [SerializeField] public SerializedDictionary<string, Object> Manifest = new();
+        public SerializedDictionary<string, Object> Manifest = new();
 
 #if USING_NEWTONSOFT_JSON
         // unity can't serialize a list properly
         public string Serialize()
             => JsonConvert.SerializeObject(Manifest.Keys);
 #endif
+
+        public List<T> GetAllAssets<T>(string path) where T : Object
+            => Resources.LoadAll<T>(path).ToList();
 
         public T GetAsset<T>(string path) where T : Object
         {
@@ -75,6 +78,6 @@ namespace AgarthaLib.Assets
             return manifest;
         }
 
-#endregion
+        #endregion
     }
 }
