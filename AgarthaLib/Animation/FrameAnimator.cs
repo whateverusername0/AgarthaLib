@@ -28,7 +28,8 @@ namespace AgarthaLib.Animation
 
         public void SetCurrent(TAnim value)
         {
-            ResetTime();
+            if (CurrentAnimation != value)
+                ResetTime();
             CurrentAnimation = value;
         }
 
