@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AgarthaLib")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0c844cd272c1385b2567a4e118747bbb19755a37")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2014df2b9a9fd3f7532505673f66c18ae383a7d3")]
 [assembly: System.Reflection.AssemblyProductAttribute("AgarthaLib")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AgarthaLib")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
