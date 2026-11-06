@@ -4,7 +4,7 @@ using UnityEngine;
 namespace AgarthaLib.ECS
 {
     /// <summary>
-    ///     A definition of a singleton meant to run in parallel with other singletons.
+    ///     A definition of a singleton that is optimized to run in parallel with other singletons.
     ///     Has an EventQueue, which is supposed to be managed by an <see cref="EntitySystemManager"/>
     ///     in order to synchronize events across behaviors.
     /// </summary>
