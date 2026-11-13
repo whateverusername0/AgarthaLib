@@ -56,6 +56,11 @@ namespace AgarthaLib.Animation
         public bool IsPlaying => !Finished;
 
         /// <summary>
+        ///     Current timing point from 0 to 1 (start to end).
+        /// </summary>
+        public float Time => (_time == 0 ? float.Epsilon : _time) / Duration;
+
+        /// <summary>
         ///     Constructor for <see cref="SimpleAnimation"/>.
         /// </summary>
         /// <param name="start"> <inheritdoc cref="Start" path="/summary/node()"/> </param>
