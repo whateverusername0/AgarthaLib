@@ -26,7 +26,7 @@ namespace AgarthaLib.Extensions
         }
 
         public static T TryInstantiate<T>(this UnityEngine.Object @object, GameObject original,
-            Vector3 position, Quaternion rotation) where T : UnityEngine.Component
+            Vector3 position, Quaternion rotation) where T : Component
         {
             var inst = UnityEngine.Object.Instantiate(original, position, rotation);
             if (inst.TryGetComponentInChildren<T>(out var c))
@@ -34,6 +34,13 @@ namespace AgarthaLib.Extensions
 
             inst.SafeDestroy(inst);
             return null;
+        }
+
+        public static bool TryInstantiate<T>(this UnityEngine.Object @object, GameObject original,
+            Vector3 position, Quaternion rotation, out T inst) where T : Component
+        {
+            inst = @object.TryInstantiate<T>(original, position, rotation);
+            return inst != null;
         }
 
         #endregion
