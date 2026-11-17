@@ -92,10 +92,10 @@ namespace AgarthaLib.Collision.Handlers
         {
             var ies = new List<IEnumerator>();
             if (Flag == TransformFlags.Position || Flag == TransformFlags.All)
-                ies.Add(t.IESmoothMoveCoroutine(pdelta, duration, ease, type));
+                ies.Add(IESmoothMoveCoroutine(t, pdelta, duration, ease, type));
 
             if (Flag == TransformFlags.Rotation || Flag == TransformFlags.All)
-                ies.Add(t.IESmoothRotateCoroutine(rdelta, duration, ease, type));
+                ies.Add(IESmoothRotateCoroutine(t, rdelta, duration, ease, type));
 
             StartCoroutine(IETransformCoroutineWrapper(ies, revert));
         }
@@ -116,6 +116,70 @@ namespace AgarthaLib.Collision.Handlers
 
             if (revert) _revertEndEvent?.Invoke();
             else _endEvent?.Invoke();
+        }
+
+        public CoroutineData SmoothMoveCoroutine(Transform t, Vector3 delta, float duration, bool ease, TransformType type)
+            => _coroutine.Add(IESmoothMoveCoroutine(t, delta, duration, ease, type));
+
+        public IEnumerator IESmoothMoveCoroutine(Transform tr, Vector3 delta, float duration, bool ease, TransformType type)
+        {
+            if (tr == null) yield break;
+
+            var start = tr.localPosition;
+            var end = type == TransformType.Delta ? start + delta : delta;
+
+            if (duration <= 0f)
+            {
+                tr.localPosition = end;
+                yield break;
+            }
+
+            var elapsed = 0f;
+            var wfe = new WaitForEndOfFrame();
+            while (elapsed < duration)
+            {
+                yield return wfe;
+                elapsed += Time.deltaTime;
+                var t = Mathf.Clamp01(elapsed / duration);
+                var p = ease ? Mathf.SmoothStep(0f, 1f, t) : t;
+                tr.localPosition = Vector3.Lerp(start, end, p);
+            }
+
+            // ensure exact final position
+            tr.localPosition = end;
+            yield break;
+        }
+
+        public CoroutineData SmoothRotateCoroutine(Transform t, Quaternion delta, float duration, bool ease, TransformType type)
+            => _coroutine.Add(IESmoothRotateCoroutine(t, delta, duration, ease, type));
+
+        public IEnumerator IESmoothRotateCoroutine(Transform tr, Quaternion delta, float duration, bool ease, TransformType type)
+        {
+            if (tr == null) yield break;
+
+            var start = tr.localRotation;
+            var end = type == TransformType.Delta ? start * delta : delta;
+
+            if (duration <= 0f)
+            {
+                tr.localRotation = end;
+                yield break;
+            }
+
+            var elapsed = 0f;
+            var wfe = new WaitForEndOfFrame();
+            while (elapsed < duration)
+            {
+                yield return wfe;
+                elapsed += Time.deltaTime;
+                var t = Mathf.Clamp01(elapsed / duration);
+                var p = ease ? Mathf.SmoothStep(0f, 1f, t) : t;
+                tr.localRotation = Quaternion.Slerp(start, end, p);
+            }
+
+            // ensure exact final rotation
+            tr.localRotation = end;
+            yield break;
         }
     }
 }

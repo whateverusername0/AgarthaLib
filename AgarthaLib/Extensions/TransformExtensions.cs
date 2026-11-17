@@ -1,4 +1,6 @@
-﻿using AgarthaLib.MonoBehavior;
+﻿using AgarthaLib.Animation;
+using AgarthaLib.Data;
+using AgarthaLib.MonoBehavior;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -17,74 +19,32 @@ namespace AgarthaLib.Extensions
 
     public static class TransformExtensions
     {
-        private static CoroutineManager _coroutine => CoroutineManager.Instance;
-
-        public static CoroutineData SmoothMoveCoroutine(this Transform t, Vector3 delta,
-            float duration, bool ease, TransformType type)
-            => _coroutine.Add(IESmoothMoveCoroutine(t, delta, duration, ease, type));
-
-        public static IEnumerator IESmoothMoveCoroutine(this Transform tr, Vector3 delta,
-            float duration, bool ease, TransformType type)
+        public static Transform OverrideTransformData(this Transform t, TransformData @override)
         {
-            if (tr == null) yield break;
-
-            var start = tr.localPosition;
-            var end = type == TransformType.Delta ? start + delta : delta;
-
-            if (duration <= 0f)
-            {
-                tr.localPosition = end;
-                yield break;
-            }
-
-            var elapsed = 0f;
-            var wfe = new WaitForEndOfFrame();
-            while (elapsed < duration)
-            {
-                yield return wfe;
-                elapsed += Time.deltaTime;
-                var t = Mathf.Clamp01(elapsed / duration);
-                var p = ease ? Mathf.SmoothStep(0f, 1f, t) : t;
-                tr.localPosition = Vector3.Lerp(start, end, p);
-            }
-
-            // ensure exact final position
-            tr.localPosition = end;
-            yield break;
+            t.localPosition = @override.Position;
+            t.localEulerAngles = @override.EulerAngles;
+            t.localScale = @override.Scale;
+            return t;
         }
 
-        public static CoroutineData SmoothRotateCoroutine(this Transform t, Quaternion delta,
-            float duration, bool ease, TransformType type)
-            => _coroutine.Add(IESmoothRotateCoroutine(t, delta, duration, ease, type));
+        private static CoroutineManager _coroutine => CoroutineManager.Instance;
 
-        public static IEnumerator IESmoothRotateCoroutine(this Transform tr, Quaternion delta,
-            float duration, bool ease, TransformType type)
+        public static void Animate(this Transform t, TransformData @override, float duration,
+            EasingMode easeIn, EasingMode easeOut, bool spike = false)
         {
-            if (tr == null) yield break;
+            var sa = new SimpleAnimation(0, 1, duration, spike, easeIn, easeOut);
+            _coroutine.Add(t.IEAnimate(new(t), @override, sa));
+        }
 
-            var start = tr.localRotation;
-            var end = type == TransformType.Delta ? start * delta : delta;
-
-            if (duration <= 0f)
+        private static IEnumerator IEAnimate(this Transform t, TransformData a, TransformData b, SimpleAnimation sa)
+        {
+            var wof = new WaitForEndOfFrame();
+            while (sa.IsPlaying)
             {
-                tr.localRotation = end;
-                yield break;
+                var td = TransformData.Lerp(a, b, sa.Step(Time.deltaTime));
+                t.OverrideTransformData(td);
+                yield return wof;
             }
-
-            var elapsed = 0f;
-            var wfe = new WaitForEndOfFrame();
-            while (elapsed < duration)
-            {
-                yield return wfe;
-                elapsed += Time.deltaTime;
-                var t = Mathf.Clamp01(elapsed / duration);
-                var p = ease ? Mathf.SmoothStep(0f, 1f, t) : t;
-                tr.localRotation = Quaternion.Slerp(start, end, p);
-            }
-
-            // ensure exact final rotation
-            tr.localRotation = end;
-            yield break;
         }
     }
 }
